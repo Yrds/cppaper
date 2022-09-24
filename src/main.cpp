@@ -1,11 +1,13 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include "PARSE_ERROR.hpp"
 
 struct Args {
   std::unique_ptr<std::string> projectPath;
 };
 
+//Parse all the command line parameters
 Args parseArgs(int argc, char *argv[]) {
   Args args;
 
@@ -16,23 +18,36 @@ Args parseArgs(int argc, char *argv[]) {
       std::string argOption{argv[i+1]};
       args.projectPath = std::make_unique<std::string>(argOption);
       i++;
-      
-    } else {
-      std::cout << "You need to specify a project directory" << std::endl;
     }
-    std::cout << argv[i] << std::endl;
+    //std::cout << argv[i] << std::endl;
   };
 
   return args;
 };
 
+//Validate and return an error if something went wrong otherwise 0 || PARSE_ERROR
+PARSE_ERROR validateArgs(Args& args){ 
+  if(!args.projectPath) {
+    return NO_PROJECT_DIR;
+  }
+
+  return NO_ERROR;
+}
+
 int main(int argc, char *argv[])
 {
 
   //Parse args
-  auto args = parseArgs(argc, argv); 
+  Args args = parseArgs(argc, argv); 
 
-  std::cout << "Project path: " << (args.projectPath ? *(args.projectPath) : "None") << std::endl;
+  auto validation = validateArgs(args) == NO_ERROR;
+  if(validation == NO_PROJECT_DIR) {
+    std::cout << "No project dir specified" << std::endl; 
+    return validation;
+  } else {
+    std::cout << "Project path: " << (args.projectPath ? *(args.projectPath) : "None") << std::endl;
+  }
+
 
   return 0;
 }
