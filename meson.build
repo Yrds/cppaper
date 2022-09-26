@@ -6,4 +6,12 @@ src = files(
 
 inc = include_directories('src')
 
-executable('blogcpp', src, include_directories: inc )
+cppmark_subproj = subproject('cppmark')
+
+dependencies = []
+libcppmark_dep = cppmark_subproj.get_variable('libcppmark_dep')
+dependencies += libcppmark_dep
+
+executable('blogcpp', src, include_directories: inc, dependencies: dependencies )
+
+
