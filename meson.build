@@ -1,17 +1,14 @@
 project('cppaper', 'cpp', version: '0.0.1', default_options: ['cpp_std=c++20'])
 
+
 src = files(
-  'src/main.cpp'
+  'src/cppaper.cpp'
   )
 
 inc = include_directories('src')
 
-cppmark_subproj = subproject('cppmark')
+cmark_gfm_sub = subproject('cmark-gfm')
 
-dependencies = []
-libcppmark_dep = cppmark_subproj.get_variable('libcppmark_dep')
-dependencies += libcppmark_dep
-
-executable('cppaper', src, include_directories: inc, dependencies: dependencies )
-
-
+executable('cppaper', src, include_directories: inc, dependencies: [
+  cmark_gfm_sub.get_variable('cmark_gfm_dep')
+  ])
