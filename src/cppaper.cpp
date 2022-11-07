@@ -150,6 +150,20 @@ std::vector<Page> getPages(std::filesystem::path& directory) {
   return pages;
 }
 
+std::string execTemplate(std::string templateFilePath, const Page& page) { //TODO add Site& reference
+  auto templateFile = std::ifstream(templateFilePath);
+
+  std::stringstream templateStream;
+
+  templateStream << templateFile.rdbuf();
+
+  std::string templateString = templateStream.str();
+
+  templateString.replace(templateString.find("{{ $html }}"), 12, page.html);
+
+  return templateString;
+}
+
 void outputPages(Directory& pagesDirectory, std::filesystem::path& publicDirectory) {
   for(const auto& page: pagesDirectory.pages) {
     auto pagePath = page.path;
@@ -164,15 +178,8 @@ void outputPages(Directory& pagesDirectory, std::filesystem::path& publicDirecto
       std::stringstream ss;
 
       if(pagesDirectory.config.contains("template")) {
-        auto templateFile = std::ifstream("templates/" + pagesDirectory.config.at("template"));
-        std::stringstream templateStream;
-        templateStream << templateFile.rdbuf();
-        std::string templateString = templateStream.str();
 
-        //TODO method specific to template replacement
-        templateString.replace(templateString.find("{{ $html }}"), 12, page.html);
-
-        ss << templateString;
+        ss << execTemplate("templates/" + pagesDirectory.config.at("template"), page);
 
       } else {
         ss << page.html;
