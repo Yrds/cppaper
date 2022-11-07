@@ -7,6 +7,10 @@
 #include <string>
 #include <vector>
 
+//NOTE Always before a release:
+//const correctness
+//format code
+
 namespace cppaper {
 
 using configMap = std::map<std::string, std::string>;
