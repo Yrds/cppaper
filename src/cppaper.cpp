@@ -11,14 +11,6 @@
 
 using configMap = std::map<std::string, std::string>;
 
-struct Site {
-  configMap config;
-};
-
-struct Directory {
-  std::filesystem::path path;
-  configMap config;
-};
 
 struct Page {
   std::string title;
@@ -27,6 +19,17 @@ struct Page {
   configMap config;
 };
 
+struct Directory {
+  std::filesystem::path path;
+  configMap config;
+  std::vector<Page> pages;
+};
+
+struct Site {
+  configMap config;
+  //std::vector<Directory> directories;
+  Directory directory;
+};
 
 configMap getConfig(std::filesystem::path& directory) {
   configMap directoryConfig;
@@ -147,8 +150,8 @@ std::vector<Page> getPages(std::filesystem::path& directory) {
   return pages;
 }
 
-void outputPages(std::vector<Page>& pages, Directory& pagesDirectory, std::filesystem::path& publicDirectory) {
-  for(const auto& page: pages) {
+void outputPages(Directory& pagesDirectory, std::filesystem::path& publicDirectory) {
+  for(const auto& page: pagesDirectory.pages) {
     auto pagePath = page.path;
 
     auto fileName = pagePath.replace_extension(".html").string().replace(page.path.string().find(pagesDirectory.path.string()), pagesDirectory.path.string().size(), publicDirectory.string());
@@ -185,32 +188,40 @@ void outputPages(std::vector<Page>& pages, Directory& pagesDirectory, std::files
 
 
 //Load configuration and output directory files to public directory
-void outputDirectory(Directory& directory, std::filesystem::path& publicDirectory, Site& site) {
-
-  auto directoryConfig = getConfig(directory.path);
-
-  auto pages = getPages(directory.path);
-
-  outputPages(pages, directory, publicDirectory);
+void outputSite(Site& site, std::filesystem::path& publicDirectory) {
+  outputPages(site.directory, publicDirectory);
 }
 
 Site getSite() {
   std::filesystem::path sitePath("");
 
+  auto pagesDirectory = getPagesDirectory(); 
+
   return Site {
-    getConfig(sitePath)
+    getConfig(sitePath),
   };
+}
+
+void loadSiteDirectories(Site& site) {
+    site.directory = getPagesDirectory();
+}
+
+void loadSitePages(Site& site) {
+  site.directory.pages = getPages(site.directory.path);
 }
 
 int main(int argc, char *argv[])
 {
-  auto pagesDirectory = getPagesDirectory();
-
-  auto publicDirectory = createPublicDirectory();
 
   auto site = getSite();
 
-  outputDirectory(pagesDirectory, publicDirectory, site);
+  loadSiteDirectories(site);
+
+  loadSitePages(site);
+
+  auto publicDirectory = createPublicDirectory();
+
+  outputSite(site, publicDirectory);
 
   return 0;
 }
