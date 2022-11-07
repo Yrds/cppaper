@@ -13,29 +13,29 @@
 
 namespace cppaper {
 
-using configMap = std::map<std::string, std::string>;
+using ConfigMap = std::map<std::string, std::string>;
 
 struct Page {
   std::string title;
   std::string html;
   std::filesystem::path path;
-  configMap config;
+  ConfigMap config;
 };
 
 struct Directory {
   std::filesystem::path path;
-  configMap config;
+  ConfigMap config;
   std::vector<Page> pages;
 };
 
 struct Site {
-  configMap config;
+  ConfigMap config;
   // std::vector<Directory> directories;
   Directory directory;
 };
 
-configMap getConfig(std::filesystem::path &directory) {
-  configMap directoryConfig;
+ConfigMap getConfig(std::filesystem::path &directory) {
+  ConfigMap directoryConfig;
 
   std::ifstream configFile;
 
