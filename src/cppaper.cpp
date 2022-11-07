@@ -180,8 +180,6 @@ void outputSite(Site &site, std::filesystem::path &publicDirectory) {
 Site getSite() {
   std::filesystem::path sitePath("");
 
-  auto pagesDirectory = getPagesDirectory();
-
   return Site{
       getConfig(sitePath),
   };
