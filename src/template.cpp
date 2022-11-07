@@ -10,15 +10,15 @@
 namespace cppaper {
 
 std::map<std::string, TemplateFunction> templateFunctionsMap = {
-    {"pageHTML", [](Site &site, Directory &directory, Page &page,
+    {"pageContent", [](Site &site, Directory &directory, Page &page,
                     std::string args) { 
 
       return ""; 
     }}};
 
 std::pair<int, int> findPlaceholders(std::string& templateString, int offset = 0) {
-  const auto beginBracket = templateString.find("{{", offset);
-  const auto endBracket = templateString.find("}}", beginBracket);
+  const auto beginBracket = templateString.find("{{ ", offset);
+  const auto endBracket = templateString.find(" }}", beginBracket);
 
   return {beginBracket, endBracket};
 };
