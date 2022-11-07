@@ -9,9 +9,9 @@
 
 #include "Site.hpp"
 
-//NOTE Always before a release:
-//const correctness
-//format code
+// NOTE Always before a release:
+// const correctness
+// format code
 
 namespace cppaper {
 
