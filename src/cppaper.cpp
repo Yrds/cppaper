@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Site.hpp"
+#include "template.hpp"
 
 // NOTE Always before a release:
 // const correctness
@@ -126,20 +127,6 @@ std::vector<Page> getPages(std::filesystem::path &directory) {
   return pages;
 }
 
-std::string execTemplate(std::string templateFilePath,
-                         const Page &page) { // TODO add Site& reference
-  auto templateFile = std::ifstream(templateFilePath);
-
-  std::stringstream templateStream;
-
-  templateStream << templateFile.rdbuf();
-
-  std::string templateString = templateStream.str();
-
-  templateString.replace(templateString.find("{{ $html }}"), 12, page.html);
-
-  return templateString;
-}
 
 void outputPages(Directory &pagesDirectory,
                  std::filesystem::path &publicDirectory) {
