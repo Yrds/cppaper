@@ -7,32 +7,13 @@
 #include <string>
 #include <vector>
 
+#include "Site.hpp"
+
 //NOTE Always before a release:
 //const correctness
 //format code
 
 namespace cppaper {
-
-using ConfigMap = std::map<std::string, std::string>;
-
-struct Page {
-  std::string title;
-  std::string html;
-  std::filesystem::path path;
-  ConfigMap config;
-};
-
-struct Directory {
-  std::filesystem::path path;
-  ConfigMap config;
-  std::vector<Page> pages;
-};
-
-struct Site {
-  ConfigMap config;
-  // std::vector<Directory> directories;
-  Directory directory;
-};
 
 ConfigMap getConfig(std::filesystem::path &directory) {
   ConfigMap directoryConfig;
