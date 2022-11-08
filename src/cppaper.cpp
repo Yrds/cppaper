@@ -46,23 +46,31 @@ ConfigMap getConfig(std::filesystem::path &directory) {
 
 Directory getPagesDirectory(std::string pagesDirectoryPath = "pages") {
 
-  // TODO exception if pages is not a directory
   std::filesystem::path directoryPath{pagesDirectoryPath};
 
-  return {std::filesystem::path(pagesDirectoryPath), getConfig(directoryPath)};
+  if (std::filesystem::is_directory(directoryPath)) {
+    return {std::filesystem::path(pagesDirectoryPath),
+            getConfig(directoryPath)};
+  } else {
+    throw "Path is not a directory: " + pagesDirectoryPath;
+  }
 }
 
 std::vector<std::filesystem::path> getMdFiles(std::filesystem::path dirPath) {
-  // TODO dirPath must be a dir, otherwise exception
-  std::vector<std::filesystem::path> mdFiles;
+  if (std::filesystem::is_directory(dirPath)) {
+    std::vector<std::filesystem::path> mdFiles;
 
-  for (auto const &dirEntry : std::filesystem::directory_iterator{dirPath}) {
-    if (dirEntry.path().extension().string() == ".md") {
-      mdFiles.push_back(dirEntry.path());
+    for (auto const &dirEntry : std::filesystem::directory_iterator{dirPath}) {
+      if (dirEntry.path().extension().string() == ".md") {
+        mdFiles.push_back(dirEntry.path());
+      }
     }
-  }
 
-  return mdFiles;
+    return mdFiles;
+
+  } else {
+    throw "This directory it's not a path: " + dirPath.string();
+  }
 }
 
 std::vector<std::filesystem::path>
@@ -89,7 +97,6 @@ std::filesystem::path createPublicDirectory(bool overrideDirectory = true) {
     std::filesystem::remove_all(publicDirectory);
   }
 
-  // TODO exception if directory couldn't be created
   std::filesystem::create_directory(publicDirectoryPath);
 
   return publicDirectory;
@@ -144,7 +151,6 @@ void outputPages(Directory &pagesDirectory,
       std::stringstream ss;
 
       if (pagesDirectory.config.contains("template")) {
-
         ss << execTemplate("templates/" + pagesDirectory.config.at("template"),
                            page, pagesDirectory, site);
       } else {
@@ -158,8 +164,8 @@ void outputPages(Directory &pagesDirectory,
   }
 }
 
-// Load configuration and output directory files to public directory
 void outputSite(Site &site, std::filesystem::path &publicDirectory) {
+  //TODO Recursive paths to remove first parameter
   outputPages(site.directory, publicDirectory, site);
 }
 
