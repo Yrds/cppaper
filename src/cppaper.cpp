@@ -129,7 +129,7 @@ std::vector<Page> getPages(std::filesystem::path &directory) {
 
 
 void outputPages(Directory &pagesDirectory,
-                 std::filesystem::path &publicDirectory) {
+                 std::filesystem::path &publicDirectory, Site& site) {
   for (const auto &page : pagesDirectory.pages) {
     auto pagePath = page.path;
 
@@ -147,7 +147,7 @@ void outputPages(Directory &pagesDirectory,
       if (pagesDirectory.config.contains("template")) {
 
         ss << execTemplate("templates/" + pagesDirectory.config.at("template"),
-                           page);
+                           page, pagesDirectory, site);
       } else {
         ss << page.html;
       }
@@ -161,7 +161,7 @@ void outputPages(Directory &pagesDirectory,
 
 // Load configuration and output directory files to public directory
 void outputSite(Site &site, std::filesystem::path &publicDirectory) {
-  outputPages(site.directory, publicDirectory);
+  outputPages(site.directory, publicDirectory, site);
 }
 
 Site getSite() {
