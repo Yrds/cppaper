@@ -10,9 +10,13 @@ inc = include_directories('src')
 
 cmark_gfm_sub = subproject('cmark-gfm')
 
+inja_sub = subproject('inja')
+
 
 executable('cppaper', src, include_directories: inc, dependencies: [
-  cmark_gfm_sub.get_variable('cmark_gfm_dep')],
+  cmark_gfm_sub.get_variable('cmark_gfm_dep'),
+  inja_sub.get_variable('inja_dep')
+  ],
   install_rpath: '$ORIGIN/../lib',
   install_dir: '/bin/',
   install: true,

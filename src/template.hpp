@@ -7,8 +7,6 @@
 #include "Site.hpp"
 
 namespace cppaper {
-  using TemplateFunction = std::function<std::string(Site&, Directory&, Page&, std::string args)>;
-
   std::string execTemplate(std::string templateFilePath,
       const Page &page);
 }
