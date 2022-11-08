@@ -127,9 +127,8 @@ std::vector<Page> getPages(std::filesystem::path &directory) {
   return pages;
 }
 
-
 void outputPages(Directory &pagesDirectory,
-                 std::filesystem::path &publicDirectory, Site& site) {
+                 std::filesystem::path &publicDirectory, Site &site) {
   for (const auto &page : pagesDirectory.pages) {
     auto pagePath = page.path;
 
