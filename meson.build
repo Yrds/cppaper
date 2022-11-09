@@ -1,9 +1,10 @@
-project('cppaper', 'cpp', version: '0.1.1', default_options: ['cpp_std=c++20'])
+project('cppaper', 'cpp', version: '0.2.1', default_options: ['cpp_std=c++20'])
 
 
 src = files(
   'src/cppaper.cpp',
-  'src/template.cpp'
+  'src/template.cpp',
+  'src/config.cpp'
   )
 
 inc = include_directories('src')
