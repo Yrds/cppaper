@@ -9,6 +9,7 @@
 
 #include "Site.hpp"
 #include "template.hpp"
+#include "config.hpp"
 
 // NOTE Always before a release:
 // const correctness
@@ -16,33 +17,6 @@
 
 namespace cppaper {
 
-ConfigMap getConfig(std::filesystem::path &directory) {
-  ConfigMap directoryConfig;
-
-  std::ifstream configFile;
-
-  if (std::filesystem::is_directory(directory)) {
-    configFile.open(directory.string() + "/config");
-  } else {
-    configFile.open(directory.string() + ".config");
-  }
-
-  if (configFile.is_open()) {
-    std::string line;
-    while (std::getline(configFile, line)) {
-      auto delimiterPosition = line.find("=");
-      if (delimiterPosition != std::string::npos) {
-        directoryConfig[line.substr(0, delimiterPosition)] =
-            line.substr(delimiterPosition + 1);
-      }
-    }
-  }
-
-  for (const auto &[config, value] : directoryConfig) {
-    std::cout << config << ":" << value << std::endl;
-  }
-  return directoryConfig;
-}
 
 Directory getPagesDirectory(std::string pagesDirectoryPath = "pages") {
 
