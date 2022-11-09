@@ -6,6 +6,7 @@
 
 namespace cppaper {
   ConfigMap getConfig(std::filesystem::path &directory);
+  std::filesystem::path getTemplateDirectory();
 }
 
 #endif //CPPAPER_CONFIG_HPP_INCLUDED

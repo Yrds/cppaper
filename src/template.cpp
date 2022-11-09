@@ -20,7 +20,10 @@ std::string execTemplate(std::string templateFilePath, const Page &page,
   inja::Template templ = env.parse_template(templateFilePath);
 
   inja::json data;
+
+
   // TODO include partials layouts to be included
+  //
 
   data["page"]["html"] = page.html;
 

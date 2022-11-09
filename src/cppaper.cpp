@@ -125,7 +125,7 @@ void outputPages(Directory &pagesDirectory,
       std::stringstream ss;
 
       if (pagesDirectory.config.contains("template")) {
-        ss << execTemplate("templates/" + pagesDirectory.config.at("template"),
+        ss << execTemplate(getTemplateDirectory().string() + pagesDirectory.config.at("template"),
                            page, pagesDirectory, site);
       } else {
         ss << page.html;

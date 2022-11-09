@@ -27,4 +27,8 @@ namespace cppaper {
 
     return directoryConfig;
   }
+
+  std::filesystem::path getTemplateDirectory() {
+    return std::filesystem::path("templates/");
+  }
 }
