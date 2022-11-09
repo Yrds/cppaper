@@ -5,10 +5,10 @@
 #include "Directory.hpp"
 
 namespace cppaper {
-  struct Site {
-    ConfigMap config;
-    // std::vector<Directory> directories;
-    Directory directory;
-  };
-}
-#endif //SITE_INCLUDED
+struct Site {
+  ConfigMap config;
+  // std::vector<Directory> directories;
+  Directory directory;
+};
+} // namespace cppaper
+#endif // SITE_INCLUDED

@@ -1,13 +1,11 @@
-#include "template.hpp"
-#include "Directory.hpp"
-#include "inja/inja.hpp"
-
 #include <fstream>
 #include <functional>
 #include <sstream>
 #include <utility>
 
-#include "Page.hpp"
+#include "Directory.hpp"
+#include "inja/inja.hpp"
+#include "template.hpp"
 
 namespace cppaper {
 std::string execTemplate(std::string templateFilePath, const Page &page,
@@ -21,21 +19,20 @@ std::string execTemplate(std::string templateFilePath, const Page &page,
 
   inja::json data;
 
-
   // TODO include partials layouts to be included
   //
 
   data["page"]["html"] = page.html;
 
-  for(const auto& [config, value]: page.config) {
+  for (const auto &[config, value] : page.config) {
     data["page"]["config"][config] = value;
   }
 
-  for(const auto& [config, value]: directory.config) {
+  for (const auto &[config, value] : directory.config) {
     data["directory"]["config"][config] = value;
   }
 
-  for(const auto& [config, value]: site.config) {
+  for (const auto &[config, value] : site.config) {
     data["site"]["config"][config] = value;
   }
 

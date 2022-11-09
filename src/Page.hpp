@@ -6,12 +6,12 @@
 #include <string>
 
 namespace cppaper {
-  struct Page {
-    std::string title;
-    std::string html;
-    std::filesystem::path path;
-    ConfigMap config;
-  };
-}
+struct Page {
+  std::string title;
+  std::string html;
+  std::filesystem::path path;
+  ConfigMap config;
+};
+} // namespace cppaper
 
-#endif //PAGE_INCLUDED
+#endif // PAGE_INCLUDED

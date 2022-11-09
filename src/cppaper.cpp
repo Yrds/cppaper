@@ -1,4 +1,3 @@
-#include "cmark-gfm.h"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -8,15 +7,15 @@
 #include <vector>
 
 #include "Site.hpp"
-#include "template.hpp"
+#include "cmark-gfm.h"
 #include "config.hpp"
+#include "template.hpp"
 
 // NOTE Always before a release:
 // const correctness
 // format code
 
 namespace cppaper {
-
 
 Directory getPagesDirectory(std::string pagesDirectoryPath = "pages") {
 
@@ -125,7 +124,8 @@ void outputPages(Directory &pagesDirectory,
       std::stringstream ss;
 
       if (pagesDirectory.config.contains("template")) {
-        ss << execTemplate(getTemplateDirectory().string() + pagesDirectory.config.at("template"),
+        ss << execTemplate(getTemplateDirectory().string() +
+                               pagesDirectory.config.at("template"),
                            page, pagesDirectory, site);
       } else {
         ss << page.html;
@@ -139,7 +139,7 @@ void outputPages(Directory &pagesDirectory,
 }
 
 void outputSite(Site &site, std::filesystem::path &publicDirectory) {
-  //TODO Recursive paths to remove first parameter
+  // TODO Recursive paths to remove first parameter
   outputPages(site.directory, publicDirectory, site);
 }
 
