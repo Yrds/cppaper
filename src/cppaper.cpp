@@ -34,7 +34,8 @@ std::vector<std::filesystem::path> getMdFiles(std::filesystem::path dirPath) {
     std::vector<std::filesystem::path> mdFiles;
 
     for (auto const &dirEntry : std::filesystem::directory_iterator{dirPath}) {
-      if (dirEntry.path().extension().string() == ".md") {
+      auto const pathExtension = dirEntry.path().extension().string();
+      if (pathExtension ==  ".md" || pathExtension == ".html") {
         mdFiles.push_back(dirEntry.path());
       }
     }
