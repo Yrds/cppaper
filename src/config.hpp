@@ -6,7 +6,7 @@
 #include "ConfigMap.hpp"
 
 namespace cppaper {
-ConfigMap getConfig(std::filesystem::path &directory);
+ConfigMap getConfig(const std::filesystem::path &directory);
 std::filesystem::path getTemplateDirectory();
 } // namespace cppaper
 

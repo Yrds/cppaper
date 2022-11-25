@@ -11,6 +11,16 @@
 #include "config.hpp"
 #include "template.hpp"
 
+#include "components/Config.hpp"
+#include "components/PathComponent.hpp"
+#include "components/DirectoryComponent.hpp"
+#include "components/FileComponent.hpp"
+#include "components/Site.hpp"
+#include "components/MarkdownComponent.hpp"
+#include "components/PageContent.hpp"
+
+#include "entt/entt.hpp"
+
 // NOTE Always before a release:
 // const correctness
 // format code
@@ -35,7 +45,7 @@ std::vector<std::filesystem::path> getMdFiles(std::filesystem::path dirPath) {
 
     for (auto const &dirEntry : std::filesystem::directory_iterator{dirPath}) {
       auto const pathExtension = dirEntry.path().extension().string();
-      if (pathExtension ==  ".md" || pathExtension == ".html") {
+      if (pathExtension == ".md" || pathExtension == ".html") {
         mdFiles.push_back(dirEntry.path());
       }
     }
@@ -101,8 +111,8 @@ std::vector<Page> getPages(std::filesystem::path &directory) {
   std::vector<Page> pages;
 
   for (auto &mdFile : getMdFiles(directory)) {
-    pages.push_back(
-        {mdFile.stem(), getHTMLFromMD(mdFile), mdFile, getConfig(mdFile)});
+    pages.push_back({mdFile.stem(), mdFile, getConfig(mdFile)});
+    //{mdFile.stem(), getHTMLFromMD(mdFile), mdFile, getConfig(mdFile)});
   }
 
   return pages;
@@ -129,7 +139,7 @@ void outputPages(Directory &pagesDirectory,
                                pagesDirectory.config.at("template"),
                            page, pagesDirectory, site);
       } else {
-        ss << page.html;
+        // TODO ss << page.html;
       }
 
       outputPageFile << ss.rdbuf();
@@ -144,18 +154,92 @@ void outputSite(Site &site, std::filesystem::path &publicDirectory) {
   outputPages(site.directory, publicDirectory, site);
 }
 
-Site getSite() {
-  std::filesystem::path sitePath("");
+Site getSite(entt::registry &registry) {
+  const std::filesystem::path sitePath("");
+
+  const auto site = registry.create();
+
+  registry.emplace<ConfigComponent>(site, getConfig(sitePath));
+  registry.emplace<SiteComponent>(site);
+  registry.emplace<OriginPathComponent>(site, sitePath);
 
   return Site{
       getConfig(sitePath),
   };
 }
 
-void loadSiteDirectories(Site &site) { site.directory = getPagesDirectory(); }
+//TODO change this function to scanSiteDirectories
+void loadSiteDirectories(entt::registry &registry) {
+  const auto view = registry.view<OriginPathComponent, SiteComponent>();
+
+  view.each([&registry](const auto entity, const auto &path) {
+    std::filesystem::path directoryPath{"pages"};
+
+    for (auto const &dirEntry :
+         std::filesystem::directory_iterator{directoryPath}) {
+
+      if (!std::filesystem::is_directory(dirEntry)) {
+
+        const auto directoryEntity = registry.create();
+
+        registry.emplace<FileComponent>(directoryEntity);
+
+        auto const pathExtension = dirEntry.path().extension().string();
+
+        if (pathExtension == ".md") {
+          registry.emplace<MarkdownComponent>(directoryEntity);
+        }
+
+        registry.emplace<OriginPathComponent>(directoryEntity, dirEntry.path());
+
+        registry.emplace<PageContentComponent>(directoryEntity);
+
+        registry.emplace<ConfigComponent>(directoryEntity,
+                                          getConfig(dirEntry.path()));
+      }
+      //registry.emplace<DirectoryComponent>(directoryEntity);
+    }
+
+  });
+}
 
 void loadSitePages(Site &site) {
   site.directory.pages = getPages(site.directory.path);
+}
+
+void generateContent(entt::registry &registry) {
+  const auto markdownView =
+      registry.view<const OriginPathComponent, PageContentComponent,
+                    const MarkdownComponent, const FileComponent>();
+
+  markdownView.each([](const auto &originPath, auto &pageContent) {
+    std::ifstream mdFile(originPath.path, std::ios::binary);
+
+    // TODO Find a better way to write this code(It's a mess!)
+    if (mdFile.is_open()) {
+      std::stringstream ss;
+
+      ss << mdFile.rdbuf();
+
+      auto mdContent = ss.str();
+
+      pageContent.content = std::string{
+          cmark_markdown_to_html(mdContent.c_str(), mdContent.size(), 0)};
+    }
+  });
+
+  // TODO load PageContentComponent from entities with Page component
+}
+
+void outputContent(entt::registry &registry) {
+
+  const auto contentView = registry.view<const PageContentComponent, const OriginPathComponent, FileComponent>();
+
+  contentView.each([](const auto& pageContent, const auto& originPath){
+
+      });
+    // TODO output content from PageComponent and PageContentComponent and
+    // OriginPath
 }
 
 } // namespace cppaper
@@ -164,15 +248,23 @@ int main(int argc, char *argv[]) {
 
   using namespace cppaper;
 
-  auto site = getSite();
+  entt::registry registry;
 
-  loadSiteDirectories(site);
+  getSite(registry); // TODO delete `site` variable
 
-  loadSitePages(site);
+  loadSiteDirectories(registry);
 
-  auto publicDirectory = createPublicDirectory();
+  generateContent(registry);
 
-  outputSite(site, publicDirectory);
+  //loadSitePages(site);
+
+  outputContent(registry);
+
+  //TODO compileMarkdown
+
+  //createPublicDirectory();
+
+  //outputSite(site, publicDirectory); //TODO convert to DOD
 
   return 0;
 }

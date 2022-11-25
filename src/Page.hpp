@@ -8,7 +8,6 @@
 namespace cppaper {
 struct Page {
   std::string title;
-  std::string html;
   std::filesystem::path path;
   ConfigMap config;
 };

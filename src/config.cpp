@@ -3,7 +3,7 @@
 #include "config.hpp"
 
 namespace cppaper {
-  ConfigMap getConfig(std::filesystem::path &directory) {
+  ConfigMap getConfig(const std::filesystem::path &directory) {
     ConfigMap directoryConfig;
 
     std::ifstream configFile;

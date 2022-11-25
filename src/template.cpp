@@ -22,7 +22,7 @@ std::string execTemplate(std::string templateFilePath, const Page &page,
   // TODO include partials layouts to be included
   //
 
-  data["page"]["html"] = page.html;
+  //TODO data["page"]["html"] = page.html;
 
   for (const auto &[config, value] : page.config) {
     data["page"]["config"][config] = value;

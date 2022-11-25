@@ -13,10 +13,13 @@ cmark_gfm_sub = subproject('cmark-gfm')
 
 inja_sub = subproject('inja')
 
+entt_sub = subproject('entt')
+
 
 executable('cppaper', src, include_directories: inc, dependencies: [
   cmark_gfm_sub.get_variable('cmark_gfm_dep'),
-  inja_sub.get_variable('inja_dep')
+  inja_sub.get_variable('inja_dep'),
+  entt_sub.get_variable('entt_dep')
   ],
   install_rpath: '$ORIGIN/../lib',
   install_dir: '/bin/',
@@ -24,4 +27,5 @@ executable('cppaper', src, include_directories: inc, dependencies: [
   override_options: ['cpp_std=c++20']
   )
 
-install_data('build/subprojects/cmark-gfm-0.29.0.gfm.6/libcmark-gfm.so', install_dir: '/lib/')
+#TODO this is not working when setup product
+#install_data('build/subprojects/cmark-gfm-0.29.0.gfm.6/libcmark-gfm.so', install_dir: '/lib/')
