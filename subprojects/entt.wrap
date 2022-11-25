@@ -1,0 +1,12 @@
+[wrap-file]
+directory = entt-3.11.0
+source_url = https://github.com/skypjack/entt/archive/refs/tags/v3.11.0.tar.gz
+source_filename = v3.11.0.tar.gz
+source_hash = 7cca2bd4d4aeef6c5bdbe06b9e047e7f2519ebaff901207cc81ac71a2bbe185e
+patch_filename = entt_3.11.0-1_patch.zip
+patch_url = https://wrapdb.mesonbuild.com/v2/entt_3.11.0-1/get_patch
+patch_hash = 989549f32aeb583968091f64bd0e35f87464b6dbc84d80aaf34ba126afb3ceb6
+wrapdb_version = 3.11.0-1
+
+[provide]
+entt = entt_dep
