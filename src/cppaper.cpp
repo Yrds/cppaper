@@ -179,7 +179,7 @@ void loadSiteDirectories(entt::registry &registry) {
     for (auto const &dirEntry :
          std::filesystem::directory_iterator{directoryPath}) {
 
-      if (!std::filesystem::is_directory(dirEntry)) {
+      if (!std::filesystem::is_directory(dirEntry) && dirEntry.path().filename() != "config" ) {
 
         const auto directoryEntity = registry.create();
 
@@ -194,6 +194,7 @@ void loadSiteDirectories(entt::registry &registry) {
         registry.emplace<OriginPathComponent>(directoryEntity, dirEntry.path());
 
         registry.emplace<PageContentComponent>(directoryEntity);
+
 
         registry.emplace<ConfigComponent>(directoryEntity,
                                           getConfig(dirEntry.path()));
@@ -242,7 +243,7 @@ void outputContent(entt::registry &registry) {
 
   const std::filesystem::path pagesPath{"pages"};
 
-  std::filesystem::remove("public");
+  std::filesystem::remove_all("public");
 
   contentView.each([&pagesPath](const auto &pageContent, const auto &originPath) {
 
