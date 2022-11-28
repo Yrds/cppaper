@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <stdexcept>
 
 #include "Site.hpp"
 #include "cmark-gfm.h"
@@ -215,7 +216,6 @@ void generateContent(entt::registry &registry) {
   markdownView.each([](const auto &originPath, auto &pageContent) {
     std::ifstream mdFile(originPath.path, std::ios::binary);
 
-    // TODO Find a better way to write this code(It's a mess!)
     if (mdFile.is_open()) {
       std::stringstream ss;
 
@@ -228,29 +228,56 @@ void generateContent(entt::registry &registry) {
     }
   });
 
-  // TODO load PageContentComponent from entities with Page component
 }
 
 void outputContent(entt::registry &registry) {
 
-  const auto contentView = registry.view<const PageContentComponent, const OriginPathComponent, FileComponent>();
+  const auto contentView =
+      registry.view<const PageContentComponent, const OriginPathComponent,
+                    FileComponent>();
 
-  contentView.each([](const auto& pageContent, const auto& originPath){
+  const auto size = contentView.size_hint();
 
-      });
-    // TODO output content from PageComponent and PageContentComponent and
-    // OriginPath
+  std::cout << "writing " << size << " files" << std::endl;
+
+  const std::filesystem::path pagesPath{"pages"};
+
+  std::filesystem::remove("public");
+
+  contentView.each([&pagesPath](const auto &pageContent, const auto &originPath) {
+
+    auto destinationPath = std::filesystem::path("public/" + std::filesystem::relative(originPath.path, pagesPath).string());
+
+    destinationPath.replace_extension(".html");
+
+    std::filesystem::create_directory(destinationPath.parent_path());
+
+    std::ofstream outputPageFile(destinationPath);
+
+    if (outputPageFile.is_open()) {
+      std::stringstream ss;
+
+      ss << pageContent.content;
+
+      outputPageFile << ss.rdbuf();
+    } else {
+      //throw "Failed to write file " + destinationPath.string();
+      throw std::invalid_argument("Failed to write file: " + destinationPath.string());
+    }
+  });
+  // TODO output content from PageComponent and PageContentComponent and
+  // OriginPath
 }
 
 } // namespace cppaper
 
 int main(int argc, char *argv[]) {
-
   using namespace cppaper;
 
   entt::registry registry;
 
-  getSite(registry); // TODO delete `site` variable
+  //TODO Refactoring name of system functions to System Acronym and move to properly directories "systems"
+  getSite(registry);
 
   loadSiteDirectories(registry);
 
