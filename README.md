@@ -18,7 +18,6 @@ Not ready yet!
 #### Instructions
 
 ```
-meson subprojects download
 meson setup build
 meson compile -C build
 ```
