@@ -284,15 +284,7 @@ int main(int argc, char *argv[]) {
 
   generateContent(registry);
 
-  //loadSitePages(site);
-
   outputContent(registry);
-
-  //TODO compileMarkdown
-
-  //createPublicDirectory();
-
-  //outputSite(site, publicDirectory); //TODO convert to DOD
 
   return 0;
 }
