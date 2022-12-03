@@ -4,7 +4,8 @@ project('cppaper', 'cpp', version: '0.2.1', default_options: ['cpp_std=c++20'])
 src = files(
   'src/cppaper.cpp',
   'src/template.cpp',
-  'src/config.cpp'
+  'src/config.cpp',
+  'src/systems/template.cpp'
   )
 
 inc = include_directories('src')
