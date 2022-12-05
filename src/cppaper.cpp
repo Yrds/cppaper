@@ -19,6 +19,7 @@
 #include "components/PageContent.hpp"
 #include "components/PathComponent.hpp"
 #include "components/Site.hpp"
+#include "components/ParentSite.hpp"
 
 #include "systems/template.hpp"
 
@@ -172,10 +173,11 @@ Site getSite(entt::registry &registry) {
 }
 
 // TODO change this function to scanSiteDirectories
+// TODO separate directories scan from file scan
 void loadSiteDirectories(entt::registry &registry) {
   const auto view = registry.view<OriginPathComponent, SiteComponent>();
 
-  view.each([&registry](const auto entity, const auto &path) {
+  view.each([&registry](const auto siteEntity, const auto &path) {
     std::filesystem::path directoryPath{"pages"};
 
     for (auto const &dirEntry :
@@ -187,6 +189,7 @@ void loadSiteDirectories(entt::registry &registry) {
         const auto directoryEntity = registry.create();
 
         registry.emplace<FileComponent>(directoryEntity);
+        registry.emplace<ParentSite>(siteEntity);
 
         auto const pathExtension = dirEntry.path().extension().string();
 
