@@ -20,6 +20,8 @@
 #include "components/MarkdownComponent.hpp"
 #include "components/PageContent.hpp"
 
+#include "systems/template.hpp"
+
 #include "entt/entt.hpp"
 
 // NOTE Always before a release:
@@ -270,6 +272,7 @@ void outputContent(entt::registry &registry) {
   // OriginPath
 }
 
+
 } // namespace cppaper
 
 int main(int argc, char *argv[]) {
@@ -284,15 +287,9 @@ int main(int argc, char *argv[]) {
 
   generateContent(registry);
 
-  //loadSitePages(site);
+  templateSystem(registry);
 
   outputContent(registry);
-
-  //TODO compileMarkdown
-
-  //createPublicDirectory();
-
-  //outputSite(site, publicDirectory); //TODO convert to DOD
 
   return 0;
 }
