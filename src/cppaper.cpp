@@ -3,9 +3,9 @@
 #include <iostream>
 #include <map>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
-#include <stdexcept>
 
 #include "Site.hpp"
 #include "cmark-gfm.h"
@@ -13,12 +13,12 @@
 #include "template.hpp"
 
 #include "components/Config.hpp"
-#include "components/PathComponent.hpp"
 #include "components/DirectoryComponent.hpp"
 #include "components/FileComponent.hpp"
-#include "components/Site.hpp"
 #include "components/MarkdownComponent.hpp"
 #include "components/PageContent.hpp"
+#include "components/PathComponent.hpp"
+#include "components/Site.hpp"
 
 #include "systems/template.hpp"
 
@@ -171,7 +171,7 @@ Site getSite(entt::registry &registry) {
   };
 }
 
-//TODO change this function to scanSiteDirectories
+// TODO change this function to scanSiteDirectories
 void loadSiteDirectories(entt::registry &registry) {
   const auto view = registry.view<OriginPathComponent, SiteComponent>();
 
@@ -181,7 +181,8 @@ void loadSiteDirectories(entt::registry &registry) {
     for (auto const &dirEntry :
          std::filesystem::directory_iterator{directoryPath}) {
 
-      if (!std::filesystem::is_directory(dirEntry) && dirEntry.path().filename() != "config" ) {
+      if (!std::filesystem::is_directory(dirEntry) &&
+          dirEntry.path().filename() != "config") {
 
         const auto directoryEntity = registry.create();
 
@@ -197,13 +198,11 @@ void loadSiteDirectories(entt::registry &registry) {
 
         registry.emplace<PageContentComponent>(directoryEntity);
 
-
         registry.emplace<ConfigComponent>(directoryEntity,
                                           getConfig(dirEntry.path()));
       }
-      //registry.emplace<DirectoryComponent>(directoryEntity);
+      // registry.emplace<DirectoryComponent>(directoryEntity);
     }
-
   });
 }
 
@@ -230,7 +229,6 @@ void generateContent(entt::registry &registry) {
           cmark_markdown_to_html(mdContent.c_str(), mdContent.size(), 0)};
     }
   });
-
 }
 
 void outputContent(entt::registry &registry) {
@@ -247,31 +245,33 @@ void outputContent(entt::registry &registry) {
 
   std::filesystem::remove_all("public");
 
-  contentView.each([&pagesPath](const auto &pageContent, const auto &originPath) {
+  contentView.each(
+      [&pagesPath](const auto &pageContent, const auto &originPath) {
+        auto destinationPath = std::filesystem::path(
+            "public/" +
+            std::filesystem::relative(originPath.path, pagesPath).string());
 
-    auto destinationPath = std::filesystem::path("public/" + std::filesystem::relative(originPath.path, pagesPath).string());
+        destinationPath.replace_extension(".html");
 
-    destinationPath.replace_extension(".html");
+        std::filesystem::create_directory(destinationPath.parent_path());
 
-    std::filesystem::create_directory(destinationPath.parent_path());
+        std::ofstream outputPageFile(destinationPath);
 
-    std::ofstream outputPageFile(destinationPath);
+        if (outputPageFile.is_open()) {
+          std::stringstream ss;
 
-    if (outputPageFile.is_open()) {
-      std::stringstream ss;
+          ss << pageContent.content;
 
-      ss << pageContent.content;
-
-      outputPageFile << ss.rdbuf();
-    } else {
-      //throw "Failed to write file " + destinationPath.string();
-      throw std::invalid_argument("Failed to write file: " + destinationPath.string());
-    }
-  });
+          outputPageFile << ss.rdbuf();
+        } else {
+          // throw "Failed to write file " + destinationPath.string();
+          throw std::invalid_argument("Failed to write file: " +
+                                      destinationPath.string());
+        }
+      });
   // TODO output content from PageComponent and PageContentComponent and
   // OriginPath
 }
-
 
 } // namespace cppaper
 
@@ -280,7 +280,8 @@ int main(int argc, char *argv[]) {
 
   entt::registry registry;
 
-  //TODO Refactoring name of system functions to System Acronym and move to properly directories "systems"
+  // TODO Refactoring name of system functions to System Acronym and move to
+  // properly directories "systems"
   getSite(registry);
 
   loadSiteDirectories(registry);
