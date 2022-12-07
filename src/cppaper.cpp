@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <stack>
 
 #include "Site.hpp"
 #include "cmark-gfm.h"
@@ -172,6 +173,7 @@ Site getSite(entt::registry &registry) {
   };
 }
 
+
 // TODO change this function to scanSiteDirectories
 // TODO separate directories scan from file scan
 void loadSiteDirectories(entt::registry &registry) {
@@ -180,6 +182,16 @@ void loadSiteDirectories(entt::registry &registry) {
   view.each([&registry](const auto siteEntity, const auto &path) {
     std::filesystem::path directoryPath{"pages"};
 
+    std::stack<std::filesystem::path> directories{{"pages"}};
+
+    //TODO bring the loop to this while
+    //while (!directories.empty()) {
+    //  auto directory = directories.top();
+
+
+
+    //  directories.pop();
+    //}
     for (auto const &dirEntry :
          std::filesystem::directory_iterator{directoryPath}) {
 
@@ -189,7 +201,7 @@ void loadSiteDirectories(entt::registry &registry) {
         const auto directoryEntity = registry.create();
 
         registry.emplace<FileComponent>(directoryEntity);
-        registry.emplace<ParentSite>(siteEntity);
+        registry.emplace<ParentSite>(directoryEntity, siteEntity);
 
         auto const pathExtension = dirEntry.path().extension().string();
 
@@ -198,11 +210,14 @@ void loadSiteDirectories(entt::registry &registry) {
         }
 
         registry.emplace<OriginPathComponent>(directoryEntity, dirEntry.path());
+        //TODO replace by relativePathComponent?
 
         registry.emplace<PageContentComponent>(directoryEntity);
 
         registry.emplace<ConfigComponent>(directoryEntity,
                                           getConfig(dirEntry.path()));
+      } else {
+
       }
       // registry.emplace<DirectoryComponent>(directoryEntity);
     }
