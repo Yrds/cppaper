@@ -2,11 +2,11 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <queue>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <queue>
 
 #include "Site.hpp"
 #include "cmark-gfm.h"
@@ -18,9 +18,9 @@
 #include "components/FileComponent.hpp"
 #include "components/MarkdownComponent.hpp"
 #include "components/PageContent.hpp"
+#include "components/ParentSite.hpp"
 #include "components/PathComponent.hpp"
 #include "components/Site.hpp"
-#include "components/ParentSite.hpp"
 
 #include "systems/template.hpp"
 
@@ -173,7 +173,6 @@ Site getSite(entt::registry &registry) {
   };
 }
 
-
 // TODO change this function to scanSiteDirectories
 // TODO separate directories scan from file scan
 void loadSiteDirectories(entt::registry &registry) {
@@ -199,11 +198,11 @@ void loadSiteDirectories(entt::registry &registry) {
 
           auto const pathExtension = dirEntry.path().extension().string();
 
-          //TODO move this to other system or function inside the same system
+          // TODO move this to other system or function inside the same system
           if (pathExtension == ".md") {
             registry.emplace<MarkdownComponent>(directoryEntity);
           }
-          //TODO
+          // TODO
 
           registry.emplace<OriginPathComponent>(directoryEntity,
                                                 dirEntry.path());
@@ -213,7 +212,7 @@ void loadSiteDirectories(entt::registry &registry) {
 
           registry.emplace<ConfigComponent>(directoryEntity,
                                             getConfig(dirEntry.path()));
-        } else if(std::filesystem::is_directory(dirEntry)) {
+        } else if (std::filesystem::is_directory(dirEntry)) {
           const auto directoryEntity = registry.create();
 
           registry.emplace<DirectoryComponent>(directoryEntity);
@@ -223,7 +222,6 @@ void loadSiteDirectories(entt::registry &registry) {
                                                 dirEntry.path());
 
           directories.push(dirEntry.path());
-
         }
         // registry.emplace<DirectoryComponent>(directoryEntity);
       }
@@ -276,8 +274,6 @@ void outputContent(entt::registry &registry) {
     std::filesystem::create_directory(destinationPath);
   });
 
-
-
   const auto contentView =
       registry.view<const PageContentComponent, const OriginPathComponent,
                     FileComponent>();
@@ -286,10 +282,6 @@ void outputContent(entt::registry &registry) {
 
   std::cout << "writing " << size << " files" << std::endl;
 
-
-  
-
-
   contentView.each(
       [&pagesPath](const auto &pageContent, const auto &originPath) {
         auto destinationPath = std::filesystem::path(
@@ -297,7 +289,6 @@ void outputContent(entt::registry &registry) {
             std::filesystem::relative(originPath.path, pagesPath).string());
 
         destinationPath.replace_extension(".html");
-
 
         std::ofstream outputPageFile(destinationPath);
 
