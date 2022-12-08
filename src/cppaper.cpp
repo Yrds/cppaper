@@ -221,7 +221,6 @@ void loadSiteDirectories(entt::registry &registry) {
 
           registry.emplace<OriginPathComponent>(directoryEntity,
                                                 dirEntry.path());
-          std::cout << "Find Directory: " << dirEntry.path() << std::endl;
 
           directories.push(dirEntry.path());
 
@@ -266,13 +265,15 @@ void outputContent(entt::registry &registry) {
 
   const std::filesystem::path pagesPath{"pages"};
 
+  std::filesystem::remove_all("public");
+  std::filesystem::create_directory("public");
+
   directoryView.each([&pagesPath](const auto &originPath) {
     auto destinationPath = std::filesystem::path(
         "public/" +
         std::filesystem::relative(originPath.path, pagesPath).string());
 
-    std::cout << "Writing to: " << destinationPath.parent_path() << std::endl;
-    std::filesystem::create_directory(destinationPath.parent_path());
+    std::filesystem::create_directory(destinationPath);
   });
 
 
@@ -286,7 +287,6 @@ void outputContent(entt::registry &registry) {
   std::cout << "writing " << size << " files" << std::endl;
 
 
-  std::filesystem::remove_all("public");
   
 
 
