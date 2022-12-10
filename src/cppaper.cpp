@@ -175,6 +175,9 @@ Site getSite(entt::registry &registry) {
 
 // TODO change this function to scanSiteDirectories
 // TODO separate directories scan from file scan
+//
+
+
 void loadSiteDirectories(entt::registry &registry) {
   const auto view = registry.view<OriginPathComponent, SiteComponent>();
 
@@ -295,6 +298,7 @@ void outputContent(entt::registry &registry) {
         if (outputPageFile.is_open()) {
           std::stringstream ss;
 
+          //TODO exec template here
           ss << pageContent.content;
 
           outputPageFile << ss.rdbuf();
@@ -323,6 +327,7 @@ int main(int argc, char *argv[]) {
 
   generateContent(registry);
 
+  //TODO USE template in all FileComponent
   templateSystem(registry);
 
   outputContent(registry);
