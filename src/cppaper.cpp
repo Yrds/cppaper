@@ -21,6 +21,7 @@
 #include "components/ParentSite.hpp"
 #include "components/PathComponent.hpp"
 #include "components/Site.hpp"
+#include "components/GeneratedContentComponent.hpp"
 
 #include "systems/template.hpp"
 
@@ -261,6 +262,7 @@ void generateContent(entt::registry &registry) {
 
 void outputContent(entt::registry &registry) {
 
+
   const auto directoryView =
       registry.view<const OriginPathComponent, const DirectoryComponent>();
 
@@ -278,7 +280,7 @@ void outputContent(entt::registry &registry) {
   });
 
   const auto contentView =
-      registry.view<const PageContentComponent, const OriginPathComponent,
+      registry.view<const GeneratedContentComponent, const OriginPathComponent,
                     FileComponent>();
 
   const auto size = contentView.size_hint();
@@ -286,7 +288,7 @@ void outputContent(entt::registry &registry) {
   std::cout << "writing " << size << " files" << std::endl;
 
   contentView.each(
-      [&pagesPath](const auto &pageContent, const auto &originPath) {
+      [&pagesPath](const auto &generatedContent, const auto &originPath) {
         auto destinationPath = std::filesystem::path(
             "public/" +
             std::filesystem::relative(originPath.path, pagesPath).string());
@@ -299,7 +301,7 @@ void outputContent(entt::registry &registry) {
           std::stringstream ss;
 
           //TODO exec template here
-          ss << pageContent.content;
+          ss << generatedContent.content;
 
           outputPageFile << ss.rdbuf();
         } else {
@@ -328,8 +330,11 @@ int main(int argc, char *argv[]) {
   generateContent(registry);
 
   //TODO USE template in all FileComponent
+  //TODO Generate GeneratedContentComponent in this system
   templateSystem(registry);
 
+
+  //TODO Output GenerateContent in this system
   outputContent(registry);
 
   return 0;
