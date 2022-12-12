@@ -360,12 +360,9 @@ int main(int argc, char *argv[]) {
 
   generateContent(registry);
 
-  //TODO USE template in all FileComponent
   //TODO Generate GeneratedContentComponent in this system
   templateSystem(registry);
 
-
-  //TODO Output GenerateContent in this system
   outputContent(registry);
 
   return 0;
