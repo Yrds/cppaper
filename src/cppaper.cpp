@@ -10,6 +10,7 @@
 
 #include "Site.hpp"
 #include "cmark-gfm.h"
+#include "components/ParentDirectory.hpp"
 #include "config.hpp"
 #include "template.hpp"
 
@@ -185,6 +186,18 @@ void loadSiteDirectories(entt::registry &registry) {
   view.each([&registry](const auto siteEntity, const auto &path) {
     std::filesystem::path directoryPath{"pages"};
 
+    //TODO optmize logic of this code
+
+    {
+      const auto directoryEntity = registry.create();
+
+      registry.emplace<DirectoryComponent>(directoryEntity);
+
+      registry.emplace<ParentSite>(directoryEntity, siteEntity);
+
+      registry.emplace<OriginPathComponent>(directoryEntity, directoryPath);
+    }
+
     std::queue<std::filesystem::path> directories{{"pages"}};
 
     while (!directories.empty()) {
@@ -192,31 +205,7 @@ void loadSiteDirectories(entt::registry &registry) {
       for (auto const &dirEntry :
            std::filesystem::directory_iterator{directory}) {
 
-        if (!std::filesystem::is_directory(dirEntry) &&
-            dirEntry.path().filename() != "config") {
-
-          const auto directoryEntity = registry.create();
-
-          registry.emplace<FileComponent>(directoryEntity);
-          registry.emplace<ParentSite>(directoryEntity, siteEntity);
-
-          auto const pathExtension = dirEntry.path().extension().string();
-
-          // TODO move this to other system or function inside the same system
-          if (pathExtension == ".md") {
-            registry.emplace<MarkdownComponent>(directoryEntity);
-          }
-          // TODO
-
-          registry.emplace<OriginPathComponent>(directoryEntity,
-                                                dirEntry.path());
-          // TODO replace by relativePathComponent?
-
-          registry.emplace<PageContentComponent>(directoryEntity);
-
-          registry.emplace<ConfigComponent>(directoryEntity,
-                                            getConfig(dirEntry.path()));
-        } else if (std::filesystem::is_directory(dirEntry)) {
+        if (std::filesystem::is_directory(dirEntry)) {
           const auto directoryEntity = registry.create();
 
           registry.emplace<DirectoryComponent>(directoryEntity);
@@ -227,7 +216,6 @@ void loadSiteDirectories(entt::registry &registry) {
 
           directories.push(dirEntry.path());
         }
-        // registry.emplace<DirectoryComponent>(directoryEntity);
       }
 
       directories.pop();
@@ -236,7 +224,42 @@ void loadSiteDirectories(entt::registry &registry) {
 }
 
 void loadSiteFiles(entt::registry &registry) {
+  auto directoriesView =
+      registry.view<const OriginPathComponent, const DirectoryComponent>();
 
+  //NOTE Feature: Allow multiple sites and get ParentSite from dirEntity
+  auto siteEntity = registry.view<const SiteComponent>().front();
+
+  directoriesView.each([&registry, &siteEntity](const auto dirEntity, const auto &originPath) {
+    for (auto const &dirEntry :
+         std::filesystem::directory_iterator{originPath.path}) {
+
+      if (!std::filesystem::is_regular_file(dirEntry) || dirEntry.path().filename() == "config") {
+        continue;
+      }
+
+      const auto directoryEntity = registry.create();
+
+      registry.emplace<FileComponent>(directoryEntity);
+      registry.emplace<ParentSite>(directoryEntity, siteEntity);
+      registry.emplace<ParentDirectoryComponent>(directoryEntity, dirEntity);
+
+      auto const pathExtension = dirEntry.path().extension().string();
+
+      // TODO move this to other system or function inside the same system
+      if (pathExtension == ".md") {
+        registry.emplace<MarkdownComponent>(directoryEntity);
+      }
+
+      registry.emplace<OriginPathComponent>(directoryEntity, dirEntry.path());
+      // TODO replace by relativePathComponent?
+
+      registry.emplace<PageContentComponent>(directoryEntity);
+
+      registry.emplace<ConfigComponent>(directoryEntity,
+                                        getConfig(dirEntry.path()));
+    }
+  });
 }
 
 void loadSitePages(Site &site) {
@@ -330,6 +353,10 @@ int main(int argc, char *argv[]) {
   getSite(registry);
 
   loadSiteDirectories(registry);
+
+  loadSiteFiles(registry);
+  
+  //TODO loadConfig ordering config by this priority File, Directory and then Site(Overriding)
 
   generateContent(registry);
 
