@@ -29,6 +29,10 @@ void templateSystem(entt::registry &registry) {
 
     inja::json data;
 
+    //if(auto pageContent = registry.try_get<PageContentComponent>(); pageContent){
+    //  data['page']['html'] = pageContent->content;
+    //}
+
     registry.emplace<GeneratedContentComponent>(entity, env.render(templ, data));
 
   });

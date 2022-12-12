@@ -235,6 +235,10 @@ void loadSiteDirectories(entt::registry &registry) {
   });
 }
 
+void loadSiteFiles(entt::registry &registry) {
+
+}
+
 void loadSitePages(Site &site) {
   site.directory.pages = getPages(site.directory.path);
 }
