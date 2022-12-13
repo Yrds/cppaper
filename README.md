@@ -5,7 +5,7 @@ A static blog/site generator made in modern c++.
 ## Features
 
   - Templates using [inja](https://github.com/pantor/inja)
-  - Pages using markdown(cfg version]
+  - Pages using markdown(gfm version)
 
 ## Installing
 
