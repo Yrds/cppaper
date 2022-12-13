@@ -256,8 +256,8 @@ void loadSiteFiles(entt::registry &registry) {
 
       registry.emplace<PageContentComponent>(directoryEntity);
 
-      registry.emplace<ConfigComponent>(directoryEntity,
-                                        getConfig(dirEntry.path()));
+      //registry.emplace<ConfigComponent>(directoryEntity,
+      //                                  getConfig(dirEntry.path()));
     }
   });
 }
@@ -285,6 +285,38 @@ void generateContent(entt::registry &registry) {
           cmark_markdown_to_html(mdContent.c_str(), mdContent.size(), 0)};
     }
   });
+}
+
+void loadConfig(entt::registry &registry) {
+  auto directoryView = registry.view<const ParentSite, const OriginPathComponent, const DirectoryComponent>();
+
+  directoryView.each([&registry](const auto dirEntity, const auto &parentSite, auto& originPath) {
+      auto directoryConfig = getConfig(originPath.path);
+
+      registry.emplace<ConfigComponent>(dirEntity, registry.get<ConfigComponent>(parentSite.entity));
+      auto dirConfig = registry.get<ConfigComponent>(dirEntity);
+
+      for(const auto &[key, value]: directoryConfig){
+        dirConfig.map[key] = value;
+      }
+
+      });
+
+  auto fileView = registry.view<const ParentDirectoryComponent, const OriginPathComponent, const FileComponent >();
+
+  fileView.each([&registry](const auto fileEntity, const auto& parentDirectory, const auto& originPath){
+      auto tempConfig = getConfig(originPath.path);
+
+      registry.emplace<ConfigComponent>(fileEntity, registry.get<ConfigComponent>(parentDirectory.entity));
+
+      auto fileConfig = registry.get<ConfigComponent>(fileEntity);
+
+      for(const auto &[key, value]: tempConfig){
+        fileConfig.map[key] = value;
+      }
+
+      });
+
 }
 
 void outputContent(entt::registry &registry) {
