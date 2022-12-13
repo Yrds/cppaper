@@ -175,10 +175,6 @@ Site getSite(entt::registry &registry) {
   };
 }
 
-// TODO change this function to scanSiteDirectories
-// TODO separate directories scan from file scan
-//
-
 void loadSiteDirectories(entt::registry &registry) {
   const auto view = registry.view<OriginPathComponent, SiteComponent>();
 
@@ -256,9 +252,6 @@ void loadSiteFiles(entt::registry &registry) {
       // TODO replace by relativePathComponent?
 
       registry.emplace<PageContentComponent>(directoryEntity);
-
-      // registry.emplace<ConfigComponent>(directoryEntity,
-      //                                   getConfig(dirEntry.path()));
     }
   });
 }
@@ -364,7 +357,6 @@ void outputContent(entt::registry &registry) {
         if (outputPageFile.is_open()) {
           std::stringstream ss;
 
-          // TODO exec template here
           ss << generatedContent.content;
 
           outputPageFile << ss.rdbuf();
@@ -374,8 +366,6 @@ void outputContent(entt::registry &registry) {
                                       destinationPath.string());
         }
       });
-  // TODO output content from PageComponent and PageContentComponent and
-  // OriginPath
 }
 
 } // namespace cppaper
@@ -395,12 +385,8 @@ int main(int argc, char *argv[]) {
 
   loadConfig(registry);
 
-  // TODO loadConfig ordering config by this priority File, Directory and then
-  // Site(Overriding)
-
   generateContent(registry);
 
-  // TODO Generate GeneratedContentComponent in this system
   templateSystem(registry);
 
   outputContent(registry);
