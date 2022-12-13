@@ -14,7 +14,7 @@ namespace cppaper {
 
 inja::Template getTemplate(entt::registry &registry, entt::entity entity, inja::Environment& env) {
   if(auto config = registry.try_get<ConfigComponent>(entity); config && config->map.contains("template")) {
-    return env.parse_template(config->map["template"]);
+    return env.parse_template("templates/"+config->map["template"]);
   }
 
   std::string templatePath = registry.get<OriginPathComponent>(entity).path.string();
