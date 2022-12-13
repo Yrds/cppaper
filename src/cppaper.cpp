@@ -393,6 +393,8 @@ int main(int argc, char *argv[]) {
 
   loadSiteFiles(registry);
 
+  loadConfig(registry);
+
   // TODO loadConfig ordering config by this priority File, Directory and then
   // Site(Overriding)
 
