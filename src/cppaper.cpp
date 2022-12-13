@@ -17,12 +17,12 @@
 #include "components/Config.hpp"
 #include "components/DirectoryComponent.hpp"
 #include "components/FileComponent.hpp"
+#include "components/GeneratedContentComponent.hpp"
 #include "components/MarkdownComponent.hpp"
 #include "components/PageContent.hpp"
 #include "components/ParentSite.hpp"
 #include "components/PathComponent.hpp"
 #include "components/Site.hpp"
-#include "components/GeneratedContentComponent.hpp"
 
 #include "systems/template.hpp"
 
@@ -179,14 +179,13 @@ Site getSite(entt::registry &registry) {
 // TODO separate directories scan from file scan
 //
 
-
 void loadSiteDirectories(entt::registry &registry) {
   const auto view = registry.view<OriginPathComponent, SiteComponent>();
 
   view.each([&registry](const auto siteEntity, const auto &path) {
     std::filesystem::path directoryPath{"pages"};
 
-    //TODO optmize logic of this code
+    // TODO optmize logic of this code
 
     {
       const auto directoryEntity = registry.create();
@@ -227,14 +226,16 @@ void loadSiteFiles(entt::registry &registry) {
   auto directoriesView =
       registry.view<const OriginPathComponent, const DirectoryComponent>();
 
-  //NOTE Feature: Allow multiple sites and get ParentSite from dirEntity
+  // NOTE Feature: Allow multiple sites and get ParentSite from dirEntity
   auto siteEntity = registry.view<const SiteComponent>().front();
 
-  directoriesView.each([&registry, &siteEntity](const auto dirEntity, const auto &originPath) {
+  directoriesView.each([&registry, &siteEntity](const auto dirEntity,
+                                                const auto &originPath) {
     for (auto const &dirEntry :
          std::filesystem::directory_iterator{originPath.path}) {
 
-      if (!std::filesystem::is_regular_file(dirEntry) || dirEntry.path().filename() == "config") {
+      if (!std::filesystem::is_regular_file(dirEntry) ||
+          dirEntry.path().filename() == "config") {
         continue;
       }
 
@@ -256,8 +257,8 @@ void loadSiteFiles(entt::registry &registry) {
 
       registry.emplace<PageContentComponent>(directoryEntity);
 
-      //registry.emplace<ConfigComponent>(directoryEntity,
-      //                                  getConfig(dirEntry.path()));
+      // registry.emplace<ConfigComponent>(directoryEntity,
+      //                                   getConfig(dirEntry.path()));
     }
   });
 }
@@ -288,39 +289,43 @@ void generateContent(entt::registry &registry) {
 }
 
 void loadConfig(entt::registry &registry) {
-  auto directoryView = registry.view<const ParentSite, const OriginPathComponent, const DirectoryComponent>();
+  auto directoryView =
+      registry.view<const ParentSite, const OriginPathComponent,
+                    const DirectoryComponent>();
 
-  directoryView.each([&registry](const auto dirEntity, const auto &parentSite, auto& originPath) {
-      auto directoryConfig = getConfig(originPath.path);
+  directoryView.each([&registry](const auto dirEntity, const auto &parentSite,
+                                 auto &originPath) {
+    auto directoryConfig = getConfig(originPath.path);
 
-      registry.emplace<ConfigComponent>(dirEntity, registry.get<ConfigComponent>(parentSite.entity));
-      auto dirConfig = registry.get<ConfigComponent>(dirEntity);
+    registry.emplace<ConfigComponent>(
+        dirEntity, registry.get<ConfigComponent>(parentSite.entity));
+    auto dirConfig = registry.get<ConfigComponent>(dirEntity);
 
-      for(const auto &[key, value]: directoryConfig){
-        dirConfig.map[key] = value;
-      }
+    for (const auto &[key, value] : directoryConfig) {
+      dirConfig.map[key] = value;
+    }
+  });
 
-      });
+  auto fileView =
+      registry.view<const ParentDirectoryComponent, const OriginPathComponent,
+                    const FileComponent>();
 
-  auto fileView = registry.view<const ParentDirectoryComponent, const OriginPathComponent, const FileComponent >();
+  fileView.each([&registry](const auto fileEntity, const auto &parentDirectory,
+                            const auto &originPath) {
+    auto tempConfig = getConfig(originPath.path);
 
-  fileView.each([&registry](const auto fileEntity, const auto& parentDirectory, const auto& originPath){
-      auto tempConfig = getConfig(originPath.path);
+    registry.emplace<ConfigComponent>(
+        fileEntity, registry.get<ConfigComponent>(parentDirectory.entity));
 
-      registry.emplace<ConfigComponent>(fileEntity, registry.get<ConfigComponent>(parentDirectory.entity));
+    auto fileConfig = registry.get<ConfigComponent>(fileEntity);
 
-      auto fileConfig = registry.get<ConfigComponent>(fileEntity);
-
-      for(const auto &[key, value]: tempConfig){
-        fileConfig.map[key] = value;
-      }
-
-      });
-
+    for (const auto &[key, value] : tempConfig) {
+      fileConfig.map[key] = value;
+    }
+  });
 }
 
 void outputContent(entt::registry &registry) {
-
 
   const auto directoryView =
       registry.view<const OriginPathComponent, const DirectoryComponent>();
@@ -359,7 +364,7 @@ void outputContent(entt::registry &registry) {
         if (outputPageFile.is_open()) {
           std::stringstream ss;
 
-          //TODO exec template here
+          // TODO exec template here
           ss << generatedContent.content;
 
           outputPageFile << ss.rdbuf();
@@ -387,12 +392,13 @@ int main(int argc, char *argv[]) {
   loadSiteDirectories(registry);
 
   loadSiteFiles(registry);
-  
-  //TODO loadConfig ordering config by this priority File, Directory and then Site(Overriding)
+
+  // TODO loadConfig ordering config by this priority File, Directory and then
+  // Site(Overriding)
 
   generateContent(registry);
 
-  //TODO Generate GeneratedContentComponent in this system
+  // TODO Generate GeneratedContentComponent in this system
   templateSystem(registry);
 
   outputContent(registry);
