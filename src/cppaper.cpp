@@ -299,7 +299,7 @@ void loadConfig(entt::registry &registry) {
 
     registry.emplace<ConfigComponent>(
         dirEntity, registry.get<ConfigComponent>(parentSite.entity));
-    auto dirConfig = registry.get<ConfigComponent>(dirEntity);
+    auto& dirConfig = registry.get<ConfigComponent>(dirEntity);
 
     for (const auto &[key, value] : directoryConfig) {
       dirConfig.map[key] = value;
@@ -317,7 +317,7 @@ void loadConfig(entt::registry &registry) {
     registry.emplace<ConfigComponent>(
         fileEntity, registry.get<ConfigComponent>(parentDirectory.entity));
 
-    auto fileConfig = registry.get<ConfigComponent>(fileEntity);
+    auto& fileConfig = registry.get<ConfigComponent>(fileEntity);
 
     for (const auto &[key, value] : tempConfig) {
       fileConfig.map[key] = value;
