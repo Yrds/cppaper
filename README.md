@@ -2,6 +2,11 @@
 
 A static blog/site generator made in modern c++.
 
+## Features
+
+  - Templates using [inja](https://github.com/pantor/inja)
+  - Pages using markdown(cfg version]
+
 ## Installing
 
 ### Package management
@@ -32,6 +37,6 @@ Where `--destdir` will be the installation directory.
 
 Note: In case you don't have permission to install to a specific directory, you can use `sudo` with `meson install` safely.
 
-## Using
+## Using/Example
 
-Not ready yet!
+I want to provide a more detailed guide on how to use `cppaper`, but for now I have a "example" directory with a fully working site, just run `cppaper` inside this directory and everything should work.
