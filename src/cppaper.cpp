@@ -34,11 +34,12 @@
 namespace cppaper {
 
 Site getSite(entt::registry &registry) {
-  const std::filesystem::path sitePath("");
+  const std::filesystem::path sitePath("./");
 
   const auto site = registry.create();
 
-  registry.emplace<ConfigComponent>(site, getConfig(sitePath));
+  const auto siteConfig = getConfig(sitePath);
+  registry.emplace<ConfigComponent>(site, siteConfig);
   registry.emplace<SiteComponent>(site);
   registry.emplace<OriginPathComponent>(site, sitePath);
 
