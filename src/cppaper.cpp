@@ -161,7 +161,7 @@ void loadConfig(entt::registry &registry) {
 
     registry.emplace<ConfigComponent>(
         dirEntity, registry.get<ConfigComponent>(parentSite.entity));
-    auto& dirConfig = registry.get<ConfigComponent>(dirEntity);
+    auto &dirConfig = registry.get<ConfigComponent>(dirEntity);
 
     for (const auto &[key, value] : directoryConfig) {
       dirConfig.map[key] = value;
@@ -179,14 +179,13 @@ void loadConfig(entt::registry &registry) {
     registry.emplace<ConfigComponent>(
         fileEntity, registry.get<ConfigComponent>(parentDirectory.entity));
 
-    auto& fileConfig = registry.get<ConfigComponent>(fileEntity);
+    auto &fileConfig = registry.get<ConfigComponent>(fileEntity);
 
     for (const auto &[key, value] : tempConfig) {
       fileConfig.map[key] = value;
     }
   });
 }
-
 
 void clearDirectory(std::filesystem::path directory) {
   for (auto const &dirEntry : std::filesystem::directory_iterator{directory}) {
@@ -196,7 +195,6 @@ void clearDirectory(std::filesystem::path directory) {
   }
 }
 
-
 void outputContent(entt::registry &registry) {
 
   const auto directoryView =
@@ -204,7 +202,7 @@ void outputContent(entt::registry &registry) {
 
   const std::filesystem::path pagesPath{"pages"};
 
-  //TODO Remove all inside public but assets to preserve assets
+  // TODO Remove all inside public but assets to preserve assets
   clearDirectory(std::filesystem::path("public"));
 
   std::filesystem::create_directory("public");
