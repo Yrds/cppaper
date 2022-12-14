@@ -263,6 +263,10 @@ int main(int argc, char *argv[]) {
 
   loadConfig(registry);
 
+  //TODO make page TitleComponent
+  
+  //TODO make a site map and add it to template
+
   generateContent(registry);
 
   templateSystem(registry);
