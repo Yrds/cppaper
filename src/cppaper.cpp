@@ -122,7 +122,7 @@ void loadSiteFiles(entt::registry &registry) {
       }
 
       registry.emplace<OriginPathComponent>(directoryEntity, dirEntry.path());
-      // TODO replace by relativePathComponent?
+      // TODO replace or add relativePathComponent?
 
       registry.emplace<PageContentComponent>(directoryEntity);
     }
@@ -202,7 +202,6 @@ void outputContent(entt::registry &registry) {
 
   const std::filesystem::path pagesPath{"pages"};
 
-  // TODO Remove all inside public but assets to preserve assets
   clearDirectory(std::filesystem::path("public"));
 
   std::filesystem::create_directory("public");
