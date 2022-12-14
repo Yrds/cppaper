@@ -12,7 +12,6 @@
 #include "cmark-gfm.h"
 #include "components/ParentDirectory.hpp"
 #include "config.hpp"
-#include "template.hpp"
 
 #include "components/Config.hpp"
 #include "components/DirectoryComponent.hpp"
