@@ -12,16 +12,16 @@
 #include "cmark-gfm.h"
 #include "components/ParentDirectory.hpp"
 
+#include "components/ChildFileComponent.hpp"
 #include "components/DirectoryComponent.hpp"
 #include "components/FileComponent.hpp"
 #include "components/GeneratedContentComponent.hpp"
+#include "components/HtmlComponent.hpp"
 #include "components/MarkdownComponent.hpp"
-#include "components/ChildFileComponent.hpp"
 #include "components/PageContent.hpp"
 #include "components/ParentSite.hpp"
 #include "components/PathComponent.hpp"
 #include "components/Site.hpp"
-#include "components/HtmlComponent.hpp"
 
 #include "systems/config.hpp"
 #include "systems/template.hpp"
@@ -91,15 +91,15 @@ void loadSiteDirectories(entt::registry &registry) {
 
 void loadSiteFiles(entt::registry &registry) {
   auto directoriesView =
-      registry.view<const OriginPathComponent, const DirectoryComponent, ChildFileComponent>();
+      registry.view<const OriginPathComponent, const DirectoryComponent,
+                    ChildFileComponent>();
 
   // NOTE Feature: Allow multiple sites and get ParentSite from dirEntity
   auto siteEntity = registry.view<const SiteComponent>().front();
 
   directoriesView.each([&registry, &siteEntity](const auto dirEntity,
                                                 const auto &originPath,
-                                                auto &children
-                                                ) {
+                                                auto &children) {
     for (auto const &dirEntry :
          std::filesystem::directory_iterator{originPath.path}) {
 
@@ -120,7 +120,7 @@ void loadSiteFiles(entt::registry &registry) {
       // TODO move this to other system or function inside the same system
       if (pathExtension == ".md") {
         registry.emplace<MarkdownComponent>(fileEntity);
-      } else if(pathExtension == ".html") {
+      } else if (pathExtension == ".html") {
         registry.emplace<HTMLComponent>(fileEntity);
       }
 
