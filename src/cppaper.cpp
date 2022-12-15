@@ -11,20 +11,21 @@
 #include "Site.hpp"
 #include "cmark-gfm.h"
 #include "components/ParentDirectory.hpp"
-#include "config.hpp"
-#include "template.hpp"
 
-#include "components/Config.hpp"
+#include "components/ChildFileComponent.hpp"
 #include "components/DirectoryComponent.hpp"
 #include "components/FileComponent.hpp"
 #include "components/GeneratedContentComponent.hpp"
+#include "components/HtmlComponent.hpp"
 #include "components/MarkdownComponent.hpp"
 #include "components/PageContent.hpp"
 #include "components/ParentSite.hpp"
 #include "components/PathComponent.hpp"
 #include "components/Site.hpp"
 
+#include "systems/config.hpp"
 #include "systems/template.hpp"
+#include "systems/title.hpp"
 
 #include "entt/entt.hpp"
 
@@ -34,18 +35,13 @@
 
 namespace cppaper {
 
-Site getSite(entt::registry &registry) {
-  const std::filesystem::path sitePath("");
+void getSite(entt::registry &registry) {
+  const std::filesystem::path sitePath("./");
 
   const auto site = registry.create();
 
-  registry.emplace<ConfigComponent>(site, getConfig(sitePath));
   registry.emplace<SiteComponent>(site);
   registry.emplace<OriginPathComponent>(site, sitePath);
-
-  return Site{
-      getConfig(sitePath),
-  };
 }
 
 void loadSiteDirectories(entt::registry &registry) {
@@ -62,6 +58,7 @@ void loadSiteDirectories(entt::registry &registry) {
       registry.emplace<DirectoryComponent>(directoryEntity);
 
       registry.emplace<ParentSite>(directoryEntity, siteEntity);
+      registry.emplace<ChildFileComponent>(directoryEntity);
 
       registry.emplace<OriginPathComponent>(directoryEntity, directoryPath);
     }
@@ -77,6 +74,7 @@ void loadSiteDirectories(entt::registry &registry) {
           const auto directoryEntity = registry.create();
 
           registry.emplace<DirectoryComponent>(directoryEntity);
+          registry.emplace<ChildFileComponent>(directoryEntity);
           registry.emplace<ParentSite>(directoryEntity, siteEntity);
 
           registry.emplace<OriginPathComponent>(directoryEntity,
@@ -93,13 +91,15 @@ void loadSiteDirectories(entt::registry &registry) {
 
 void loadSiteFiles(entt::registry &registry) {
   auto directoriesView =
-      registry.view<const OriginPathComponent, const DirectoryComponent>();
+      registry.view<const OriginPathComponent, const DirectoryComponent,
+                    ChildFileComponent>();
 
   // NOTE Feature: Allow multiple sites and get ParentSite from dirEntity
   auto siteEntity = registry.view<const SiteComponent>().front();
 
   directoriesView.each([&registry, &siteEntity](const auto dirEntity,
-                                                const auto &originPath) {
+                                                const auto &originPath,
+                                                auto &children) {
     for (auto const &dirEntry :
          std::filesystem::directory_iterator{originPath.path}) {
 
@@ -108,23 +108,26 @@ void loadSiteFiles(entt::registry &registry) {
         continue;
       }
 
-      const auto directoryEntity = registry.create();
+      const auto fileEntity = registry.create();
 
-      registry.emplace<FileComponent>(directoryEntity);
-      registry.emplace<ParentSite>(directoryEntity, siteEntity);
-      registry.emplace<ParentDirectoryComponent>(directoryEntity, dirEntity);
+      registry.emplace<FileComponent>(fileEntity);
+      registry.emplace<ParentSite>(fileEntity, siteEntity);
+      registry.emplace<ParentDirectoryComponent>(fileEntity, dirEntity);
+      children.children.push_back(fileEntity);
 
       auto const pathExtension = dirEntry.path().extension().string();
 
       // TODO move this to other system or function inside the same system
       if (pathExtension == ".md") {
-        registry.emplace<MarkdownComponent>(directoryEntity);
+        registry.emplace<MarkdownComponent>(fileEntity);
+      } else if (pathExtension == ".html") {
+        registry.emplace<HTMLComponent>(fileEntity);
       }
 
-      registry.emplace<OriginPathComponent>(directoryEntity, dirEntry.path());
-      // TODO replace by relativePathComponent?
+      registry.emplace<OriginPathComponent>(fileEntity, dirEntry.path());
+      // TODO replace or add relativePathComponent?
 
-      registry.emplace<PageContentComponent>(directoryEntity);
+      registry.emplace<PageContentComponent>(fileEntity);
     }
   });
 }
@@ -150,44 +153,6 @@ void generateContent(entt::registry &registry) {
   });
 }
 
-void loadConfig(entt::registry &registry) {
-  auto directoryView =
-      registry.view<const ParentSite, const OriginPathComponent,
-                    const DirectoryComponent>();
-
-  directoryView.each([&registry](const auto dirEntity, const auto &parentSite,
-                                 auto &originPath) {
-    auto directoryConfig = getConfig(originPath.path);
-
-    registry.emplace<ConfigComponent>(
-        dirEntity, registry.get<ConfigComponent>(parentSite.entity));
-    auto& dirConfig = registry.get<ConfigComponent>(dirEntity);
-
-    for (const auto &[key, value] : directoryConfig) {
-      dirConfig.map[key] = value;
-    }
-  });
-
-  auto fileView =
-      registry.view<const ParentDirectoryComponent, const OriginPathComponent,
-                    const FileComponent>();
-
-  fileView.each([&registry](const auto fileEntity, const auto &parentDirectory,
-                            const auto &originPath) {
-    auto tempConfig = getConfig(originPath.path);
-
-    registry.emplace<ConfigComponent>(
-        fileEntity, registry.get<ConfigComponent>(parentDirectory.entity));
-
-    auto& fileConfig = registry.get<ConfigComponent>(fileEntity);
-
-    for (const auto &[key, value] : tempConfig) {
-      fileConfig.map[key] = value;
-    }
-  });
-}
-
-
 void clearDirectory(std::filesystem::path directory) {
   for (auto const &dirEntry : std::filesystem::directory_iterator{directory}) {
     if (dirEntry.path().filename() != "assets") {
@@ -196,7 +161,6 @@ void clearDirectory(std::filesystem::path directory) {
   }
 }
 
-
 void outputContent(entt::registry &registry) {
 
   const auto directoryView =
@@ -204,7 +168,6 @@ void outputContent(entt::registry &registry) {
 
   const std::filesystem::path pagesPath{"pages"};
 
-  //TODO Remove all inside public but assets to preserve assets
   clearDirectory(std::filesystem::path("public"));
 
   std::filesystem::create_directory("public");
@@ -264,13 +227,20 @@ int main(int argc, char *argv[]) {
 
   loadSiteFiles(registry);
 
-  loadConfig(registry);
+  configSystem(registry);
+
+  titleSystem(registry);
+
+  // TODO make a site map and add it to template config(only for
+  // GeneratedContentComponent)
 
   generateContent(registry);
 
   templateSystem(registry);
 
   outputContent(registry);
+
+  std::cout << "Done!" << std::endl;
 
   return 0;
 }

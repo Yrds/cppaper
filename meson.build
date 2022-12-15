@@ -1,16 +1,16 @@
-project('cppaper', 'cpp', version: '0.4.1', default_options: ['cpp_std=c++20'])
+project('cppaper', 'cpp', version: '0.4.0', default_options: ['cpp_std=c++20', 'default_library=static'])
 
 
 src = files(
+  'src/systems/template.cpp',
+  'src/systems/config.cpp',
+  'src/systems/title.cpp',
   'src/cppaper.cpp',
-  'src/template.cpp',
-  'src/config.cpp',
-  'src/systems/template.cpp'
   )
 
 inc = include_directories('src')
 
-cmark_gfm_sub = subproject('cmark-gfm')
+cmark_gfm_sub = subproject('cmark-gfm', default_options: 'default_library=static')
 
 inja_sub = subproject('inja')
 
@@ -24,8 +24,5 @@ executable('cppaper', src, include_directories: inc, dependencies: [
   ],
   install_dir: '/bin/',
   install: true,
-  override_options: ['cpp_std=c++20']
+  override_options: ['cpp_std=c++20', 'default_library=static']
   )
-
-#TODO this is not working when setup project
-#install_data('build/subprojects/cmark-gfm-0.29.0.gfm.6/libcmark-gfm.so', install_dir: '/lib/')
