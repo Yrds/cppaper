@@ -1,4 +1,4 @@
-project('cppaper', 'cpp', version: '0.3.1', default_options: ['cpp_std=c++20'])
+project('cppaper', 'cpp', version: '0.4.1', default_options: ['cpp_std=c++20'])
 
 
 src = files(
@@ -22,7 +22,6 @@ executable('cppaper', src, include_directories: inc, dependencies: [
   inja_sub.get_variable('inja_dep'),
   entt_sub.get_variable('entt_dep')
   ],
-  install_rpath: '$ORIGIN/../lib',
   install_dir: '/bin/',
   install: true,
   override_options: ['cpp_std=c++20']
