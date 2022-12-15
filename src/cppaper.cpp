@@ -94,7 +94,7 @@ void loadSiteFiles(entt::registry &registry) {
       registry.view<const OriginPathComponent, const DirectoryComponent,
                     ChildFileComponent>();
 
-  // NOTE Feature: Allow multiple sites and get ParentSite from dirEntity
+  // NOTE Feature: Allow multiple sites and get ParentSite from dirEntity(?)
   auto siteEntity = registry.view<const SiteComponent>().front();
 
   directoriesView.each([&registry, &siteEntity](const auto dirEntity,
@@ -230,9 +230,6 @@ int main(int argc, char *argv[]) {
   configSystem(registry);
 
   titleSystem(registry);
-
-  // TODO make a site map and add it to template config(only for
-  // GeneratedContentComponent)
 
   generateContent(registry);
 
