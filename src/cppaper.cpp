@@ -234,5 +234,7 @@ int main(int argc, char *argv[]) {
 
   outputContent(registry);
 
+  std::cout << "Done!" << std::endl;
+
   return 0;
 }
