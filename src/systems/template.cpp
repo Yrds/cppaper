@@ -5,6 +5,7 @@
 #include "components/FileComponent.hpp"
 #include "components/GeneratedContentComponent.hpp"
 #include "components/PageContent.hpp"
+#include "components/HtmlComponent.hpp"
 #include "components/PathComponent.hpp"
 #include "components/ParentDirectory.hpp"
 #include "components/ParentSite.hpp"
@@ -13,6 +14,11 @@
 namespace cppaper {
 
 inja::Template getTemplate(entt::registry &registry, entt::entity entity, inja::Environment& env) {
+  if(registry.any_of<HTMLComponent>(entity)){
+    std::string templatePath = registry.get<OriginPathComponent>(entity).path.string();
+
+    return env.parse_template(templatePath);
+  }
   if(auto config = registry.try_get<ConfigComponent>(entity); config && config->map.contains("template")) {
     return env.parse_template("templates/"+config->map["template"]);
   }

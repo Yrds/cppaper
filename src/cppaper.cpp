@@ -20,6 +20,7 @@
 #include "components/ParentSite.hpp"
 #include "components/PathComponent.hpp"
 #include "components/Site.hpp"
+#include "components/HtmlComponent.hpp"
 
 #include "systems/config.hpp"
 #include "systems/template.hpp"
@@ -101,7 +102,7 @@ void loadSiteFiles(entt::registry &registry) {
         continue;
       }
 
-      const auto directoryEntity = registry.create();
+      const auto directoryEntity = registry.create(); //TODO rename directoryEntity to fileEntiy
 
       registry.emplace<FileComponent>(directoryEntity);
       registry.emplace<ParentSite>(directoryEntity, siteEntity);
@@ -112,6 +113,8 @@ void loadSiteFiles(entt::registry &registry) {
       // TODO move this to other system or function inside the same system
       if (pathExtension == ".md") {
         registry.emplace<MarkdownComponent>(directoryEntity);
+      } else if(pathExtension == ".html") {
+        registry.emplace<HTMLComponent>(directoryEntity);
       }
 
       registry.emplace<OriginPathComponent>(directoryEntity, dirEntry.path());
