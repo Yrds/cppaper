@@ -16,6 +16,7 @@
 #include "components/FileComponent.hpp"
 #include "components/GeneratedContentComponent.hpp"
 #include "components/MarkdownComponent.hpp"
+#include "components/ChildFileComponent.hpp"
 #include "components/PageContent.hpp"
 #include "components/ParentSite.hpp"
 #include "components/PathComponent.hpp"
@@ -57,6 +58,7 @@ void loadSiteDirectories(entt::registry &registry) {
       registry.emplace<DirectoryComponent>(directoryEntity);
 
       registry.emplace<ParentSite>(directoryEntity, siteEntity);
+      registry.emplace<ChildFileComponent>(directoryEntity);
 
       registry.emplace<OriginPathComponent>(directoryEntity, directoryPath);
     }
@@ -72,6 +74,7 @@ void loadSiteDirectories(entt::registry &registry) {
           const auto directoryEntity = registry.create();
 
           registry.emplace<DirectoryComponent>(directoryEntity);
+          registry.emplace<ChildFileComponent>(directoryEntity);
           registry.emplace<ParentSite>(directoryEntity, siteEntity);
 
           registry.emplace<OriginPathComponent>(directoryEntity,
@@ -88,13 +91,15 @@ void loadSiteDirectories(entt::registry &registry) {
 
 void loadSiteFiles(entt::registry &registry) {
   auto directoriesView =
-      registry.view<const OriginPathComponent, const DirectoryComponent>();
+      registry.view<const OriginPathComponent, const DirectoryComponent, ChildFileComponent>();
 
   // NOTE Feature: Allow multiple sites and get ParentSite from dirEntity
   auto siteEntity = registry.view<const SiteComponent>().front();
 
   directoriesView.each([&registry, &siteEntity](const auto dirEntity,
-                                                const auto &originPath) {
+                                                const auto &originPath,
+                                                auto &children
+                                                ) {
     for (auto const &dirEntry :
          std::filesystem::directory_iterator{originPath.path}) {
 
@@ -103,25 +108,26 @@ void loadSiteFiles(entt::registry &registry) {
         continue;
       }
 
-      const auto directoryEntity = registry.create(); //TODO rename directoryEntity to fileEntiy
+      const auto fileEntity = registry.create();
 
-      registry.emplace<FileComponent>(directoryEntity);
-      registry.emplace<ParentSite>(directoryEntity, siteEntity);
-      registry.emplace<ParentDirectoryComponent>(directoryEntity, dirEntity);
+      registry.emplace<FileComponent>(fileEntity);
+      registry.emplace<ParentSite>(fileEntity, siteEntity);
+      registry.emplace<ParentDirectoryComponent>(fileEntity, dirEntity);
+      children.children.push_back(fileEntity);
 
       auto const pathExtension = dirEntry.path().extension().string();
 
       // TODO move this to other system or function inside the same system
       if (pathExtension == ".md") {
-        registry.emplace<MarkdownComponent>(directoryEntity);
+        registry.emplace<MarkdownComponent>(fileEntity);
       } else if(pathExtension == ".html") {
-        registry.emplace<HTMLComponent>(directoryEntity);
+        registry.emplace<HTMLComponent>(fileEntity);
       }
 
-      registry.emplace<OriginPathComponent>(directoryEntity, dirEntry.path());
+      registry.emplace<OriginPathComponent>(fileEntity, dirEntry.path());
       // TODO replace or add relativePathComponent?
 
-      registry.emplace<PageContentComponent>(directoryEntity);
+      registry.emplace<PageContentComponent>(fileEntity);
     }
   });
 }

@@ -3,6 +3,7 @@
 #include "inja/inja.hpp"
 
 #include "components/FileComponent.hpp"
+#include "components/ChildFileComponent.hpp"
 #include "components/GeneratedContentComponent.hpp"
 #include "components/PageContent.hpp"
 #include "components/HtmlComponent.hpp"
@@ -30,6 +31,30 @@ inja::Template getTemplate(entt::registry &registry, entt::entity entity, inja::
   //}
 }
 
+//TODO make this a callback
+void loadDirectoryPages(entt::entity directoryEntity, entt::registry &registry,
+                        inja::json &data) {
+  auto dirChildren = registry.get<ChildFileComponent>(directoryEntity);
+
+  data["directory"]["pages"] = {};
+
+  for (const auto fileEntity : dirChildren.children) {
+    auto &originPath = registry.get<OriginPathComponent>(fileEntity);
+
+    auto relativePath = std::filesystem::path(
+        std::filesystem::relative(originPath.path,
+                                  std::filesystem::path("pages"))
+            .string());
+
+    relativePath.replace_extension(".html"); //TODO this logics seems strange
+
+    data["directory"]["pages"] += { 
+      { "title", registry.get<TitleComponent>(fileEntity).title },
+      { "path",  relativePath.string() }
+    };
+  }
+}
+
 static inja::Environment env;
 
 void templateSystem(entt::registry &registry) {
@@ -41,6 +66,8 @@ void templateSystem(entt::registry &registry) {
     inja::Template templ = getTemplate(registry, entity, env);
 
     inja::json data;
+
+    loadDirectoryPages(parentDirectory.entity, registry, data);
 
     for (const auto &[config, value] : config.map) {
       data["page"]["config"][config] = value;

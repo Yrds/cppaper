@@ -6,6 +6,8 @@
     <title> Title </title>
   </head>
   <body>
-    {{ page }}
+    {% for page in directory.pages %}
+    <a href="{{page.path}}">{{page.title}}</a>
+    {% endfor %}
   </body>
 </html>
