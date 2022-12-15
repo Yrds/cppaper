@@ -10,6 +10,7 @@
 #include "components/ParentDirectory.hpp"
 #include "components/ParentSite.hpp"
 #include "components/Config.hpp"
+#include "components/TitleComponent.hpp"
 
 namespace cppaper {
 
@@ -32,10 +33,10 @@ inja::Template getTemplate(entt::registry &registry, entt::entity entity, inja::
 static inja::Environment env;
 
 void templateSystem(entt::registry &registry) {
-  auto view = registry.view<const FileComponent, const ParentDirectoryComponent, const ParentSite, const ConfigComponent>();
+  auto view = registry.view<const FileComponent, const ParentDirectoryComponent, const ParentSite, const ConfigComponent, const TitleComponent>();
 
 
-  view.each([&registry](const auto entity, const auto& parentDirectory, const auto& parentSite, const auto& config) {
+  view.each([&registry](const auto entity, const auto& parentDirectory, const auto& parentSite, const auto& config, const auto& title) {
 
     inja::Template templ = getTemplate(registry, entity, env);
 
@@ -56,6 +57,8 @@ void templateSystem(entt::registry &registry) {
     if(auto pageContent = registry.try_get<PageContentComponent>(entity); pageContent){
       data["page"]["html"] = pageContent->content;
     }
+
+    data["page"]["title"] = title.title;
 
     registry.emplace<GeneratedContentComponent>(entity, env.render(templ, data));
 

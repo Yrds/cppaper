@@ -4,6 +4,7 @@ project('cppaper', 'cpp', version: '0.2.1', default_options: ['cpp_std=c++20', '
 src = files(
   'src/systems/template.cpp',
   'src/systems/config.cpp',
+  'src/systems/title.cpp',
   'src/cppaper.cpp',
   )
 

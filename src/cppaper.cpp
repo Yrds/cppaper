@@ -24,6 +24,7 @@
 
 #include "systems/config.hpp"
 #include "systems/template.hpp"
+#include "systems/title.hpp"
 
 #include "entt/entt.hpp"
 
@@ -222,7 +223,7 @@ int main(int argc, char *argv[]) {
 
   configSystem(registry);
 
-  // TODO make page TitleComponent
+  titleSystem(registry);
 
   // TODO make a site map and add it to template config(only for
   // GeneratedContentComponent)
