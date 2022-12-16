@@ -35,7 +35,7 @@ inja::Template getTemplate(entt::registry &registry, entt::entity entity,
   //}
 }
 
-// TODO make this a callback
+// TODO make this a callback(and add filter to files that user don't want to see(regex? maybe))
 void loadDirectoryPages(entt::entity directoryEntity, entt::registry &registry,
                         inja::json &data) {
   auto dirChildren = registry.get<ChildFileComponent>(directoryEntity);
