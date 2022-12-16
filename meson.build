@@ -17,15 +17,16 @@ inja_sub = subproject('inja')
 entt_sub = subproject('entt')
 
 
+
 cppaper_exe = executable('cppaper', src, include_directories: inc, dependencies: [
   cmark_gfm_sub.get_variable('cmark_gfm_dep'),
   inja_sub.get_variable('inja_dep'),
   entt_sub.get_variable('entt_dep')
   ],
   install_dir: '/bin/',
-  install: true,
+  install: false,
   override_options: ['cpp_std=c++20', 'default_library=static']
   )
 
-run_target('docs', depends:[cppaper_exe],
-  command: ['build/cppaper', '-C', '@SOURCE_ROOT@/docs_src/', '-O', '@SOURCE_ROOT@/docs/'])
+generate_docs = run_target('docs', depends:[cppaper_exe],
+  command: ['generate_docs.sh'])
