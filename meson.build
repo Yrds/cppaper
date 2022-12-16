@@ -1,4 +1,4 @@
-project('cppaper', 'cpp', version: '0.6.0', default_options: ['cpp_std=c++20', 'default_library=static'])
+project('cppaper', 'cpp', version: '0.6.2', default_options: ['cpp_std=c++20', 'default_library=static'])
 
 
 src = files(
@@ -23,8 +23,8 @@ cppaper_exe = executable('cppaper', src, include_directories: inc, dependencies:
   inja_sub.get_variable('inja_dep'),
   entt_sub.get_variable('entt_dep')
   ],
-  install_dir: '/bin/',
-  install: false,
+  install_dir: '/usr/bin/',
+  install: true,
   override_options: ['cpp_std=c++20', 'default_library=static']
   )
 
