@@ -23,6 +23,7 @@
 #include "components/PathComponent.hpp"
 #include "components/Site.hpp"
 #include "components/SystemConfigComponent.hpp"
+#include "components/RawFileComponent.hpp"
 
 #include "systems/config.hpp"
 #include "systems/template.hpp"
@@ -123,12 +124,17 @@ void loadSiteFiles(entt::registry &registry) {
         registry.emplace<MarkdownComponent>(fileEntity);
       } else if (pathExtension == ".html") {
         registry.emplace<HTMLComponent>(fileEntity);
+      } else {
+        //NOTE UGly code
+        registry.emplace<RawFileComponent>(fileEntity);
+        registry.emplace<OriginPathComponent>(fileEntity, dirEntry.path());
+        continue;
       }
 
       registry.emplace<OriginPathComponent>(fileEntity, dirEntry.path());
       // TODO replace or add relativePathComponent?
 
-      registry.emplace<PageContentComponent>(fileEntity);
+      registry.emplace<PageContentComponent>(fileEntity); //TODO not every PageContent(?)
     }
   });
 }
@@ -191,7 +197,9 @@ void outputContent(entt::registry &registry) {
       registry.view<const GeneratedContentComponent, const OriginPathComponent,
                     FileComponent>();
 
-  const auto size = contentView.size_hint();
+  const auto rawFileView = registry.view<const OriginPathComponent, const RawFileComponent>();
+
+  const auto size = contentView.size_hint() + rawFileView.size_hint();
 
   std::cout << "writing " << size << " files" << std::endl;
 
@@ -217,6 +225,16 @@ void outputContent(entt::registry &registry) {
                                       destinationPath.string());
         }
       });
+
+  //NOTE I wonder if it's better just to ignore files in public directory that doesn't have extension instead of just copying "raw files"
+    rawFileView.each([&pagesPath, &publicDirectory](const auto& originPath) {
+        auto destinationPath = std::filesystem::path(
+            publicDirectory.string() +
+            std::filesystem::relative(originPath.path, pagesPath).string());
+
+        std::filesystem::copy(originPath.path, destinationPath);
+        });
+
 }
 
 } // namespace cppaper
