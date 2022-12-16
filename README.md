@@ -40,3 +40,11 @@ Note: In case you don't have permission to install to a specific directory, you 
 ## Using/Example
 
 I want to provide a more detailed guide on how to use `cppaper`, but for now I have a "example" directory with a fully working site, just run `cppaper` inside this directory and everything should work.
+
+## Docs
+
+The docs are still in development, and is available [online in html version](https://cppaper.yurisantos.dev)
+
+You also can compile the docs, that uses `cppaper` as engine:
+
+`meson compile -C build docs`

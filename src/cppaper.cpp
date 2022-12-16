@@ -22,6 +22,7 @@
 #include "components/ParentSite.hpp"
 #include "components/PathComponent.hpp"
 #include "components/Site.hpp"
+#include "components/SystemConfigComponent.hpp"
 
 #include "systems/config.hpp"
 #include "systems/template.hpp"
@@ -94,7 +95,7 @@ void loadSiteFiles(entt::registry &registry) {
       registry.view<const OriginPathComponent, const DirectoryComponent,
                     ChildFileComponent>();
 
-  // NOTE Feature: Allow multiple sites and get ParentSite from dirEntity(?)
+  // NOTE Feature: Allow multiple sites and get ParentSite from dirEntity
   auto siteEntity = registry.view<const SiteComponent>().front();
 
   directoriesView.each([&registry, &siteEntity](const auto dirEntity,
@@ -154,9 +155,12 @@ void generateContent(entt::registry &registry) {
 }
 
 void clearDirectory(std::filesystem::path directory) {
-  for (auto const &dirEntry : std::filesystem::directory_iterator{directory}) {
-    if (dirEntry.path().filename() != "assets") {
-      std::filesystem::remove_all(dirEntry.path());
+  if (std::filesystem::is_directory(directory)) {
+    for (auto const &dirEntry :
+         std::filesystem::directory_iterator{directory}) {
+      if (dirEntry.path().filename() != "assets") {
+        std::filesystem::remove_all(dirEntry.path());
+      }
     }
   }
 }
@@ -168,13 +172,16 @@ void outputContent(entt::registry &registry) {
 
   const std::filesystem::path pagesPath{"pages"};
 
-  clearDirectory(std::filesystem::path("public"));
+  const auto systemEntity = registry.view<SystemConfigComponent>().front();
+  const std::filesystem::path publicDirectory = registry.get<SystemConfigComponent>(systemEntity).publicDirectory;
 
-  std::filesystem::create_directory("public");
+  clearDirectory(publicDirectory);
 
-  directoryView.each([&pagesPath](const auto &originPath) {
+  std::filesystem::create_directory(publicDirectory);
+
+  directoryView.each([&pagesPath, &publicDirectory](const auto &originPath) {
     auto destinationPath = std::filesystem::path(
-        "public/" +
+        publicDirectory.string() +
         std::filesystem::relative(originPath.path, pagesPath).string());
 
     std::filesystem::create_directory(destinationPath);
@@ -189,9 +196,9 @@ void outputContent(entt::registry &registry) {
   std::cout << "writing " << size << " files" << std::endl;
 
   contentView.each(
-      [&pagesPath](const auto &generatedContent, const auto &originPath) {
+      [&pagesPath, &publicDirectory](const auto &generatedContent, const auto &originPath) {
         auto destinationPath = std::filesystem::path(
-            "public/" +
+            publicDirectory.string() +
             std::filesystem::relative(originPath.path, pagesPath).string());
 
         destinationPath.replace_extension(".html");
@@ -214,10 +221,46 @@ void outputContent(entt::registry &registry) {
 
 } // namespace cppaper
 
-int main(int argc, char *argv[]) {
+void cmdlineParse(std::string arg, std::function<void(std::string)> callback,
+                  int argc, char *argv[]) {
+  for (auto argi = 0; argi < argc; argi++) {
+    if (std::string(argv[argi]) == arg && (argi + 1 <= argc)) {
+      callback(std::string(argv[argi + 1]));
+    }
+  }
+}
+
+//TODO config system?
+void setSystem(entt::registry &registry) {
+  using namespace cppaper;
+
+  const auto systemEntity = registry.create();
+  registry.emplace<SystemConfigComponent>(systemEntity);
+}
+
+int main(int argc, char *argv[], char *envp[]) {
   using namespace cppaper;
 
   entt::registry registry;
+
+  setSystem(registry);
+
+  cmdlineParse(
+      "-C", [](std::string value) { std::filesystem::current_path(value); },
+      argc, argv);
+
+  cmdlineParse(
+      "-O",
+      [&registry](std::string value) {
+        const auto systemEntity = registry.view<SystemConfigComponent>().front();
+
+        auto& systemConfig = registry.get<SystemConfigComponent>(systemEntity);
+
+        systemConfig.publicDirectory = std::filesystem::path { value + "/" };
+
+      },
+      argc, argv);
+  // TODO this is only temporary, I will make more robust
 
   // TODO Refactoring name of system functions to System Acronym and move to
   // properly directories "systems"
@@ -230,6 +273,9 @@ int main(int argc, char *argv[]) {
   configSystem(registry);
 
   titleSystem(registry);
+
+  // TODO make a site map and add it to template config(only for
+  // GeneratedContentComponent)
 
   generateContent(registry);
 
