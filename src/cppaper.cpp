@@ -299,6 +299,7 @@ int main(int argc, char *argv[], char *envp[]) {
 
   templateSystem(registry);
 
+  //TODO markdown output html on output content when there is no template
   outputContent(registry);
 
   std::cout << "Done!" << std::endl;
