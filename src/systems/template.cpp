@@ -12,6 +12,7 @@
 #include "components/ParentSite.hpp"
 #include "components/PathComponent.hpp"
 #include "components/TitleComponent.hpp"
+#include "components/RawFileComponent.hpp"
 
 namespace cppaper {
 
@@ -68,6 +69,12 @@ void templateSystem(entt::registry &registry) {
   view.each([&registry](const auto entity, const auto &parentDirectory,
                         const auto &parentSite, const auto &config,
                         const auto &title) {
+      //TODO Do a better logic THIS IS UGLY!!
+    if(registry.any_of<RawFileComponent>(entity)) {
+    std::cout << "Ignoring raw file" << std::endl; //TODO remove
+      return; //TODO Ignore rawFile
+    }
+
     inja::Template templ = getTemplate(registry, entity, env);
 
     inja::json data;
