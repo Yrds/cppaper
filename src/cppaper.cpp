@@ -106,7 +106,7 @@ void loadSiteFiles(entt::registry &registry) {
          std::filesystem::directory_iterator{originPath.path}) {
 
       if (!std::filesystem::is_regular_file(dirEntry) ||
-          dirEntry.path().filename() == "config") {
+          dirEntry.path().filename() == "config" || dirEntry.path().filename().string().ends_with(".config")) {
         continue;
       }
 
