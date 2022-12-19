@@ -11,7 +11,10 @@ A static blog/site generator made in modern c++.
 
 ### Package management
 
-Not ready yet!
+Aur:
+
+`yay -S cppaper`
+
 
 ### Building
 
