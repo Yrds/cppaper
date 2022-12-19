@@ -21,6 +21,7 @@ ConfigMap getConfig(const std::filesystem::path &directory) {
   if (std::filesystem::is_directory(directory)) {
     configFile.open(directory.string() + "/config");
   } else {
+    //FIXME .config file not being readed
     configFile.open(directory.string() + ".config");
   }
 
