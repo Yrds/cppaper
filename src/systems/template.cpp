@@ -55,7 +55,8 @@ void loadDirectoryPages(entt::entity directoryEntity, entt::registry &registry,
 
     data["directory"]["pages"] +=
         {{"title", registry.get<TitleComponent>(fileEntity).title},
-         {"path", relativePath.string()}};
+         {"path", relativePath.string()},
+         {"id", fileEntity}};
   }
 }
 

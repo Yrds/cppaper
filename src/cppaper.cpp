@@ -256,7 +256,7 @@ void setSystem(entt::registry &registry) {
   registry.emplace<SystemConfigComponent>(systemEntity);
 }
 
-int main(int argc, char *argv[], char *envp[]) {
+int main(int argc, char *argv[], char *envp[]) try {
   using namespace cppaper;
 
   entt::registry registry;
@@ -270,11 +270,11 @@ int main(int argc, char *argv[], char *envp[]) {
   cmdlineParse(
       "-O",
       [&registry](std::string value) {
-        const auto systemEntity = registry.view<SystemConfigComponent>().front();
+      const auto systemEntity = registry.view<SystemConfigComponent>().front();
 
-        auto& systemConfig = registry.get<SystemConfigComponent>(systemEntity);
+      auto& systemConfig = registry.get<SystemConfigComponent>(systemEntity);
 
-        systemConfig.publicDirectory = std::filesystem::path { value + "/" };
+      systemConfig.publicDirectory = std::filesystem::path { value + "/" };
 
       },
       argc, argv);
@@ -299,9 +299,16 @@ int main(int argc, char *argv[], char *envp[]) {
 
   templateSystem(registry);
 
+  //TODO markdown output html on output content when there is no template
   outputContent(registry);
 
   std::cout << "Done!" << std::endl;
 
   return 0;
+} catch(const std::exception &ex) {
+  std::cerr << ex.what() << std::endl;
+  return 1;
+} catch(...) {
+  std::cerr << "An unknown error ocurred" << std::endl;
+  return 255;
 }
