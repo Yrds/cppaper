@@ -36,6 +36,10 @@ inja::Template getTemplate(entt::registry &registry, entt::entity entity,
   //}
 }
 
+void setDefaultEnvironmentVariables(inja::json &data) {
+  data["site"]["template_dir"] = std::filesystem::path("./templates/").string();
+}
+
 // TODO make this a callback(and add filter to files that user don't want to see(regex? maybe))
 void loadDirectoryPages(entt::entity directoryEntity, entt::registry &registry,
                         inja::json &data) {
@@ -79,6 +83,8 @@ void templateSystem(entt::registry &registry) {
     inja::Template templ = getTemplate(registry, entity, env);
 
     inja::json data;
+
+    setDefaultEnvironmentVariables(data);
 
     loadDirectoryPages(parentDirectory.entity, registry, data);
 
