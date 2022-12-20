@@ -8,6 +8,7 @@
 
 namespace cppaper {
 void titleSystem(entt::registry &registry) {
+  //TODO when MarkdownComponent, try to get title by  getting <h1> tag inner text
   auto fileView = registry.view<OriginPathComponent, const FileComponent>();
 
   fileView.each([&registry](const auto fileEntity, const auto &originPath) {
