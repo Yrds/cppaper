@@ -13,11 +13,16 @@
 #include "components/PathComponent.hpp"
 #include "components/TitleComponent.hpp"
 #include "components/RawFileComponent.hpp"
+#include "components/IndexFileComponent.hpp"
 
 namespace cppaper {
 
-inja::Template getTemplate(entt::registry &registry, entt::entity entity,
+inja::Template getTemplate(entt::registry &registry, const entt::entity entity,
                            inja::Environment &env) {
+  if (auto indexFile = registry.try_get<IndexFileComponent>(entity); indexFile) {
+    return env.parse_template("./templates/" + indexFile->indexFilePath.string());
+  }
+
   if (registry.any_of<HTMLComponent>(entity)) {
     std::string templatePath =
         registry.get<OriginPathComponent>(entity).path.string();
@@ -34,6 +39,10 @@ inja::Template getTemplate(entt::registry &registry, entt::entity entity,
 
   return env.parse_template(templatePath);
   //}
+}
+
+void setDefaultEnvironmentVariables(inja::json &data) {
+  data["site"]["template_dir"] = std::filesystem::path("./templates/").string();
 }
 
 // TODO make this a callback(and add filter to files that user don't want to see(regex? maybe))
@@ -62,15 +71,12 @@ void loadDirectoryPages(entt::entity directoryEntity, entt::registry &registry,
 
 static inja::Environment env;
 
-void templateSystem(entt::registry &registry) {
-  auto view = registry.view<const FileComponent, const ParentDirectoryComponent,
-                            const ParentSite, const ConfigComponent,
-                            const TitleComponent>();
+inline void generateContent(entt::registry &registry, const entt::entity entity,
+                            const ParentDirectoryComponent &parentDirectory,
+                            const ParentSite &parentSite,
+                            const ConfigComponent &config,
+                            const TitleComponent &title) {
 
-  view.each([&registry](const auto entity, const auto &parentDirectory,
-                        const auto &parentSite, const auto &config,
-                        const auto &title) {
-      //TODO Do a better logic THIS IS UGLY!!
     if(registry.any_of<RawFileComponent>(entity)) {
     std::cout << "Ignoring raw file" << std::endl; //TODO remove
       return; //TODO Ignore rawFile
@@ -79,6 +85,8 @@ void templateSystem(entt::registry &registry) {
     inja::Template templ = getTemplate(registry, entity, env);
 
     inja::json data;
+
+    setDefaultEnvironmentVariables(data);
 
     loadDirectoryPages(parentDirectory.entity, registry, data);
 
@@ -105,7 +113,33 @@ void templateSystem(entt::registry &registry) {
 
     registry.emplace<GeneratedContentComponent>(entity,
                                                 env.render(templ, data));
+}
+
+void templateSystem(entt::registry &registry) {
+  auto view = registry.view<const FileComponent, const ParentDirectoryComponent,
+                            const ParentSite, const ConfigComponent,
+                            const TitleComponent>();
+
+  //FIXME IndexFileComponent are not being included in this view
+  view.each([&registry](const auto entity, const auto &parentDirectory,
+                        const auto &parentSite, const auto &config,
+                        const auto &title) {
+    generateContent(registry, entity, parentDirectory, parentSite, config,
+                    title);
   });
+
+  //auto indexFileView =
+  //    registry.view<const IndexFileComponent, const ParentDirectoryComponent,
+  //                  const ParentSite, const ConfigComponent,
+  //                  const TitleComponent>();
+
+  //indexFileView.each([&registry](const auto entity, const auto &indexFile,
+  //                               const auto &parentDirectory,
+  //                               const auto &parentSite, const auto &config,
+  //                               const auto &title) {
+  //  generateContent(registry, entity, parentDirectory, parentSite, config,
+  //                  title);
+  //});
 
   // TODO separate entities that don't have templates and those who have.
 }

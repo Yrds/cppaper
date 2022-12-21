@@ -3,9 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>Index</title>
+    <title>List</title>
   </head>
   <body>
-    body
+    {% for page in directory.pages %}
+    <a href="{{page.path}}">{{page.title}}</a>
+    {% endfor %}
   </body>
 </html>

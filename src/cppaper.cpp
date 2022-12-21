@@ -15,6 +15,7 @@
 #include "components/ChildFileComponent.hpp"
 #include "components/DirectoryComponent.hpp"
 #include "components/FileComponent.hpp"
+#include "components/IndexFileComponent.hpp"
 #include "components/GeneratedContentComponent.hpp"
 #include "components/HtmlComponent.hpp"
 #include "components/MarkdownComponent.hpp"
@@ -28,6 +29,7 @@
 #include "systems/config.hpp"
 #include "systems/template.hpp"
 #include "systems/title.hpp"
+#include "systems/index.hpp"
 
 #include "entt/entt.hpp"
 
@@ -106,7 +108,7 @@ void loadSiteFiles(entt::registry &registry) {
          std::filesystem::directory_iterator{originPath.path}) {
 
       if (!std::filesystem::is_regular_file(dirEntry) ||
-          dirEntry.path().filename() == "config") {
+          dirEntry.path().filename() == "config" || dirEntry.path().filename().string().ends_with(".config")) {
         continue;
       }
 
@@ -199,7 +201,9 @@ void outputContent(entt::registry &registry) {
 
   const auto rawFileView = registry.view<const OriginPathComponent, const RawFileComponent>();
 
-  const auto size = contentView.size_hint() + rawFileView.size_hint();
+  const auto indexFileView = registry.view<const ParentDirectoryComponent, const IndexFileComponent, const GeneratedContentComponent>();
+
+  const auto size = contentView.size_hint() + rawFileView.size_hint() + indexFileView.size_hint();
 
   std::cout << "writing " << size << " files" << std::endl;
 
@@ -235,6 +239,28 @@ void outputContent(entt::registry &registry) {
         std::filesystem::copy(originPath.path, destinationPath);
         });
 
+
+    indexFileView.each([&registry, &pagesPath, &publicDirectory](const auto &parentDirectory, const auto &indexFile, const auto& generatedContent) {
+        auto destinationPath = std::filesystem::path(
+            publicDirectory.string() +
+            std::filesystem::relative(registry.get<OriginPathComponent>(parentDirectory.entity).path, pagesPath).string());
+
+        std::ofstream outputPageFile(destinationPath.string() + "/index.html");
+
+        if (outputPageFile.is_open()) {
+          std::stringstream ss;
+
+          ss << generatedContent.content;
+
+          outputPageFile << ss.rdbuf();
+        } else {
+          // throw "Failed to write file " + destinationPath.string();
+          throw std::invalid_argument("Failed to write file: " +
+                                      destinationPath.string());
+        }
+
+
+        });
 }
 
 } // namespace cppaper
@@ -289,6 +315,8 @@ int main(int argc, char *argv[], char *envp[]) try {
   loadSiteFiles(registry);
 
   configSystem(registry);
+
+  indexSystem(registry);
 
   titleSystem(registry);
 
