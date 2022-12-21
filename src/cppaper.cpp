@@ -166,7 +166,7 @@ void clearDirectory(std::filesystem::path directory) {
   if (std::filesystem::is_directory(directory)) {
     for (auto const &dirEntry :
          std::filesystem::directory_iterator{directory}) {
-      if (dirEntry.path().filename() != "assets") {
+      if (dirEntry.path().filename() != "assets" || dirEntry.path().filename() != ".git") { //TODO make a `ignore` key on config files to no delete during output
         std::filesystem::remove_all(dirEntry.path());
       }
     }
