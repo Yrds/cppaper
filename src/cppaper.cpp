@@ -9,8 +9,16 @@
 #include <vector>
 
 #include "Site.hpp"
+
+#include "cmark-gfm-extension_api.h"
 #include "cmark-gfm.h"
 #include "components/ParentDirectory.hpp"
+#include "extensions/cmark-gfm-core-extensions.h"
+#include "node.h"
+#include "parser.h"
+#include "registry.h"
+#include "syntax_extension.h"
+#include "table.h"
 
 #include "components/ChildFileComponent.hpp"
 #include "components/DirectoryComponent.hpp"
@@ -141,7 +149,25 @@ void loadSiteFiles(entt::registry &registry) {
   });
 }
 
+
+struct SyntaxExtensions {
+  SyntaxExtensions(){
+    mem = cmark_get_default_mem_allocator();
+    llist = cmark_list_syntax_extensions(mem);
+  };
+
+  ~SyntaxExtensions(){
+    cmark_llist_free(mem, llist);
+  };
+
+  cmark_mem *mem;
+  cmark_llist *llist;
+} llist;
+
 void generateContent(entt::registry &registry) {
+
+  cmark_gfm_core_extensions_ensure_registered();
+
   const auto markdownView =
       registry.view<const OriginPathComponent, PageContentComponent,
                     const MarkdownComponent, const FileComponent>();
@@ -156,9 +182,15 @@ void generateContent(entt::registry &registry) {
 
       auto mdContent = ss.str();
 
-      //TODO Include cmark extensions
-      pageContent.content = std::string{
-          cmark_markdown_to_html(mdContent.c_str(), mdContent.size(), 0)};
+      // TODO Include cmark extensions
+      std::unique_ptr<cmark_node, void(*)(cmark_node*)> document = { cmark_parse_document(mdContent.c_str() , mdContent.size(), 0),
+              [](cmark_node *node) constexpr { cmark_node_free(node);}};
+
+      SyntaxExtensions extensions;
+      //TODO rewrite to use parser... extensions seems not working this way
+
+      pageContent.content = std::string{cmark_render_html(document.get(), CMARK_OPT_DEFAULT, extensions.llist)};
+
     }
   });
 }
