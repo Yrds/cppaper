@@ -156,6 +156,7 @@ void generateContent(entt::registry &registry) {
 
       auto mdContent = ss.str();
 
+      //TODO Include cmark extensions
       pageContent.content = std::string{
           cmark_markdown_to_html(mdContent.c_str(), mdContent.size(), 0)};
     }
