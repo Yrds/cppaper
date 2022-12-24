@@ -1,1 +1,2 @@
 template=cppaper-default/default.html
+markdown_unsafe=true
