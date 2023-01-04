@@ -34,10 +34,9 @@ inja::Template getTemplate(entt::registry &registry, const entt::entity entity,
     return env.parse_template("templates/" + config->map["template"]);
   }
 
-  std::string templatePath =
-      registry.get<OriginPathComponent>(entity).path.string();
-
-  return env.parse_template(templatePath);
+  //std::string templatePath =
+  //      registry.get<OriginPathComponent>(entity).path.string();
+  return env.parse("{{page.html}}");
   //}
 }
 
