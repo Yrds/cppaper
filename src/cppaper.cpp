@@ -25,10 +25,12 @@
 #include "components/Site.hpp"
 #include "components/SystemConfigComponent.hpp"
 #include "components/RawFileComponent.hpp"
+#include "components/JSONComponent.hpp"
 
 #include "systems/config.hpp"
 #include "systems/template.hpp"
 #include "systems/title.hpp"
+#include "systems/json.hpp"
 #include "systems/index.hpp"
 
 #include "entt/entt.hpp"
@@ -126,6 +128,8 @@ void loadSiteFiles(entt::registry &registry) {
         registry.emplace<MarkdownComponent>(fileEntity);
       } else if (pathExtension == ".html") {
         registry.emplace<HTMLComponent>(fileEntity);
+      } else if (pathExtension == ".json") {
+        registry.emplace<JSONComponent>(fileEntity);
       } else {
         //NOTE UGly code
         registry.emplace<RawFileComponent>(fileEntity);
@@ -314,6 +318,8 @@ int main(int argc, char *argv[], char *envp[]) try {
   loadSiteDirectories(registry);
 
   loadSiteFiles(registry);
+
+  jsonSystem(registry);
 
   configSystem(registry);
 

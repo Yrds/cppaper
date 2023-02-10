@@ -14,6 +14,7 @@
 #include "components/TitleComponent.hpp"
 #include "components/RawFileComponent.hpp"
 #include "components/IndexFileComponent.hpp"
+#include "components/JSONComponent.hpp"
 
 namespace cppaper {
 
@@ -71,7 +72,7 @@ void loadDirectoryPages(entt::entity directoryEntity, entt::registry &registry,
 
 static inja::Environment env;
 
-inline void generateContent(entt::registry &registry, const entt::entity entity,
+void generateContent(entt::registry &registry, const entt::entity entity,
                             const ParentDirectoryComponent &parentDirectory,
                             const ParentSite &parentSite,
                             const ConfigComponent &config,
@@ -89,6 +90,11 @@ inline void generateContent(entt::registry &registry, const entt::entity entity,
     setDefaultEnvironmentVariables(data);
 
     loadDirectoryPages(parentDirectory.entity, registry, data);
+
+    if(auto jsonComponent = registry.try_get<JSONComponent>(entity)) {
+      std::cout << "loading json" << std::endl;
+      data["json"] = jsonComponent->data;
+    }
 
     for (const auto &[config, value] : config.map) {
       data["page"]["config"][config] = value;
