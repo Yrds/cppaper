@@ -24,6 +24,7 @@
 #include "components/PathComponent.hpp"
 #include "components/Site.hpp"
 #include "components/SystemConfigComponent.hpp"
+#include "components/Config.hpp"
 #include "components/RawFileComponent.hpp"
 #include "components/JSONComponent.hpp"
 
@@ -148,9 +149,9 @@ void loadSiteFiles(entt::registry &registry) {
 void generateContent(entt::registry &registry) {
   const auto markdownView =
       registry.view<const OriginPathComponent, PageContentComponent,
-                    const MarkdownComponent, const FileComponent>();
+                    const MarkdownComponent, const FileComponent, const ConfigComponent>();
 
-  markdownView.each([](const auto &originPath, auto &pageContent) {
+  markdownView.each([](const auto &originPath, auto &pageContent, auto& config) {
     std::ifstream mdFile(originPath.path, std::ios::binary);
 
     if (mdFile.is_open()) {
@@ -160,9 +161,15 @@ void generateContent(entt::registry &registry) {
 
       auto mdContent = ss.str();
 
+      int cmark_options = CMARK_OPT_DEFAULT;
+
+      if(auto markdownUnsafe = config.map.find("markdown_unsafe"); markdownUnsafe != config.map.end() && markdownUnsafe->second == "true") {
+        cmark_options |= CMARK_OPT_UNSAFE;
+      }
+
       //TODO Include cmark extensions
       pageContent.content = std::string{
-          cmark_markdown_to_html(mdContent.c_str(), mdContent.size(), 0)};
+          cmark_markdown_to_html(mdContent.c_str(), mdContent.size(), cmark_options)};
     }
   });
 }
