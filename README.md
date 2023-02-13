@@ -62,12 +62,14 @@ Here's an example of directory structure with configs to Site, Directory and Fil
 ```
 
 |Config|Type|Description|
+|------|----|-----------|
 |markdown_unsafe|true or false|Allow use of custom htmls in markdown|
 |template|file (Ex. template/cppaper-default/default.html)|Specify a template to be used with a markdown or other content file|
 
 ### Special directories
 
 |Directory|Description|
+|---------|-----------|
 |pages|This directory goes all of your content pages: md, json, html, etc|
 |templates|This is where cppaper will lookup for templates when you use `template` config|
 |public|This directory can be created when you run cppaper for the first time and have all generated content from `pages` + assets directory|
@@ -76,6 +78,7 @@ Here's an example of directory structure with configs to Site, Directory and Fil
 ### Special page extensions
 
 |Extension|Description|
+|---------|-----------|
 |html|html files are not included in template, instead html itself is a template file|
 |md|markdown are compiled to html and can be included in a template by including a variable(See more in Special Variables|
 |json|same as markdown|
