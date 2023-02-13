@@ -71,7 +71,7 @@ void loadDirectoryPages(entt::entity directoryEntity, entt::registry &registry,
 
 static inja::Environment env;
 
-void generateContent(entt::registry &registry, const entt::entity entity,
+inline void generateContent(entt::registry &registry, const entt::entity entity,
                             const ParentDirectoryComponent &parentDirectory,
                             const ParentSite &parentSite,
                             const ConfigComponent &config,
