@@ -13,23 +13,26 @@
 #include "components/ParentDirectory.hpp"
 
 #include "components/ChildFileComponent.hpp"
+#include "components/Config.hpp"
 #include "components/DirectoryComponent.hpp"
 #include "components/FileComponent.hpp"
-#include "components/IndexFileComponent.hpp"
 #include "components/GeneratedContentComponent.hpp"
 #include "components/HtmlComponent.hpp"
+#include "components/IndexFileComponent.hpp"
+#include "components/JSONComponent.hpp"
 #include "components/MarkdownComponent.hpp"
 #include "components/PageContent.hpp"
 #include "components/ParentSite.hpp"
 #include "components/PathComponent.hpp"
+#include "components/RawFileComponent.hpp"
 #include "components/Site.hpp"
 #include "components/SystemConfigComponent.hpp"
-#include "components/RawFileComponent.hpp"
 
 #include "systems/config.hpp"
+#include "systems/index.hpp"
+#include "systems/json.hpp"
 #include "systems/template.hpp"
 #include "systems/title.hpp"
-#include "systems/index.hpp"
 
 #include "entt/entt.hpp"
 
@@ -108,7 +111,8 @@ void loadSiteFiles(entt::registry &registry) {
          std::filesystem::directory_iterator{originPath.path}) {
 
       if (!std::filesystem::is_regular_file(dirEntry) ||
-          dirEntry.path().filename() == "config" || dirEntry.path().filename().string().ends_with(".config")) {
+          dirEntry.path().filename() == "config" ||
+          dirEntry.path().filename().string().ends_with(".config")) {
         continue;
       }
 
@@ -126,8 +130,10 @@ void loadSiteFiles(entt::registry &registry) {
         registry.emplace<MarkdownComponent>(fileEntity);
       } else if (pathExtension == ".html") {
         registry.emplace<HTMLComponent>(fileEntity);
+      } else if (pathExtension == ".json") {
+        registry.emplace<JSONComponent>(fileEntity);
       } else {
-        //NOTE UGly code
+        // NOTE UGly code
         registry.emplace<RawFileComponent>(fileEntity);
         registry.emplace<OriginPathComponent>(fileEntity, dirEntry.path());
         continue;
@@ -136,7 +142,8 @@ void loadSiteFiles(entt::registry &registry) {
       registry.emplace<OriginPathComponent>(fileEntity, dirEntry.path());
       // TODO replace or add relativePathComponent?
 
-      registry.emplace<PageContentComponent>(fileEntity); //TODO not every PageContent(?)
+      registry.emplace<PageContentComponent>(
+          fileEntity); // TODO not every PageContent(?)
     }
   });
 }
@@ -144,29 +151,43 @@ void loadSiteFiles(entt::registry &registry) {
 void generateContent(entt::registry &registry) {
   const auto markdownView =
       registry.view<const OriginPathComponent, PageContentComponent,
-                    const MarkdownComponent, const FileComponent>();
+                    const MarkdownComponent, const FileComponent,
+                    const ConfigComponent>();
 
-  markdownView.each([](const auto &originPath, auto &pageContent) {
-    std::ifstream mdFile(originPath.path, std::ios::binary);
+  markdownView.each(
+      [](const auto &originPath, auto &pageContent, auto &config) {
+        std::ifstream mdFile(originPath.path, std::ios::binary);
 
-    if (mdFile.is_open()) {
-      std::stringstream ss;
+        if (mdFile.is_open()) {
+          std::stringstream ss;
 
-      ss << mdFile.rdbuf();
+          ss << mdFile.rdbuf();
 
-      auto mdContent = ss.str();
+          auto mdContent = ss.str();
 
-      pageContent.content = std::string{
-          cmark_markdown_to_html(mdContent.c_str(), mdContent.size(), 0)};
-    }
-  });
+          int cmark_options = CMARK_OPT_DEFAULT;
+
+          if (auto markdownUnsafe = config.map.find("markdown_unsafe");
+              markdownUnsafe != config.map.end() &&
+              markdownUnsafe->second == "true") {
+            cmark_options |= CMARK_OPT_UNSAFE;
+          }
+
+          // TODO Include cmark extensions
+          pageContent.content = std::string{cmark_markdown_to_html(
+              mdContent.c_str(), mdContent.size(), cmark_options)};
+        }
+      });
 }
 
 void clearDirectory(std::filesystem::path directory) {
   if (std::filesystem::is_directory(directory)) {
     for (auto const &dirEntry :
          std::filesystem::directory_iterator{directory}) {
-      if (dirEntry.path().filename() != "assets") {
+      if (dirEntry.path().filename() != "assets" &&
+          dirEntry.path().filename() !=
+              ".git") { // TODO make a `ignore` key on config files to no delete
+                        // during output
         std::filesystem::remove_all(dirEntry.path());
       }
     }
@@ -181,7 +202,8 @@ void outputContent(entt::registry &registry) {
   const std::filesystem::path pagesPath{"pages"};
 
   const auto systemEntity = registry.view<SystemConfigComponent>().front();
-  const std::filesystem::path publicDirectory = registry.get<SystemConfigComponent>(systemEntity).publicDirectory;
+  const std::filesystem::path publicDirectory =
+      registry.get<SystemConfigComponent>(systemEntity).publicDirectory;
 
   clearDirectory(publicDirectory);
 
@@ -199,68 +221,75 @@ void outputContent(entt::registry &registry) {
       registry.view<const GeneratedContentComponent, const OriginPathComponent,
                     FileComponent>();
 
-  const auto rawFileView = registry.view<const OriginPathComponent, const RawFileComponent>();
+  const auto rawFileView =
+      registry.view<const OriginPathComponent, const RawFileComponent>();
 
-  const auto indexFileView = registry.view<const ParentDirectoryComponent, const IndexFileComponent, const GeneratedContentComponent>();
+  const auto indexFileView =
+      registry.view<const ParentDirectoryComponent, const IndexFileComponent,
+                    const GeneratedContentComponent>();
 
-  const auto size = contentView.size_hint() + rawFileView.size_hint() + indexFileView.size_hint();
+  const auto size = contentView.size_hint() + rawFileView.size_hint() +
+                    indexFileView.size_hint();
 
   std::cout << "writing " << size << " files" << std::endl;
 
-  contentView.each(
-      [&pagesPath, &publicDirectory](const auto &generatedContent, const auto &originPath) {
-        auto destinationPath = std::filesystem::path(
-            publicDirectory.string() +
-            std::filesystem::relative(originPath.path, pagesPath).string());
+  contentView.each([&pagesPath, &publicDirectory](const auto &generatedContent,
+                                                  const auto &originPath) {
+    auto destinationPath = std::filesystem::path(
+        publicDirectory.string() +
+        std::filesystem::relative(originPath.path, pagesPath).string());
 
-        destinationPath.replace_extension(".html");
+    destinationPath.replace_extension(".html");
 
-        std::ofstream outputPageFile(destinationPath);
+    std::ofstream outputPageFile(destinationPath);
 
-        if (outputPageFile.is_open()) {
-          std::stringstream ss;
+    if (outputPageFile.is_open()) {
+      std::stringstream ss;
 
-          ss << generatedContent.content;
+      ss << generatedContent.content;
 
-          outputPageFile << ss.rdbuf();
-        } else {
-          // throw "Failed to write file " + destinationPath.string();
-          throw std::invalid_argument("Failed to write file: " +
-                                      destinationPath.string());
-        }
-      });
+      outputPageFile << ss.rdbuf();
+    } else {
+      // throw "Failed to write file " + destinationPath.string();
+      throw std::invalid_argument("Failed to write file: " +
+                                  destinationPath.string());
+    }
+  });
 
-  //NOTE I wonder if it's better just to ignore files in public directory that doesn't have extension instead of just copying "raw files"
-    rawFileView.each([&pagesPath, &publicDirectory](const auto& originPath) {
-        auto destinationPath = std::filesystem::path(
-            publicDirectory.string() +
-            std::filesystem::relative(originPath.path, pagesPath).string());
+  // NOTE I wonder if it's better just to ignore files in public directory that
+  // doesn't have extension instead of just copying "raw files"
+  rawFileView.each([&pagesPath, &publicDirectory](const auto &originPath) {
+    auto destinationPath = std::filesystem::path(
+        publicDirectory.string() +
+        std::filesystem::relative(originPath.path, pagesPath).string());
 
-        std::filesystem::copy(originPath.path, destinationPath);
-        });
+    std::filesystem::copy(originPath.path, destinationPath);
+  });
 
+  indexFileView.each([&registry, &pagesPath, &publicDirectory](
+                         const auto &parentDirectory, const auto &indexFile,
+                         const auto &generatedContent) {
+    auto destinationPath = std::filesystem::path(
+        publicDirectory.string() +
+        std::filesystem::relative(
+            registry.get<OriginPathComponent>(parentDirectory.entity).path,
+            pagesPath)
+            .string());
 
-    indexFileView.each([&registry, &pagesPath, &publicDirectory](const auto &parentDirectory, const auto &indexFile, const auto& generatedContent) {
-        auto destinationPath = std::filesystem::path(
-            publicDirectory.string() +
-            std::filesystem::relative(registry.get<OriginPathComponent>(parentDirectory.entity).path, pagesPath).string());
+    std::ofstream outputPageFile(destinationPath.string() + "/index.html");
 
-        std::ofstream outputPageFile(destinationPath.string() + "/index.html");
+    if (outputPageFile.is_open()) {
+      std::stringstream ss;
 
-        if (outputPageFile.is_open()) {
-          std::stringstream ss;
+      ss << generatedContent.content;
 
-          ss << generatedContent.content;
-
-          outputPageFile << ss.rdbuf();
-        } else {
-          // throw "Failed to write file " + destinationPath.string();
-          throw std::invalid_argument("Failed to write file: " +
-                                      destinationPath.string());
-        }
-
-
-        });
+      outputPageFile << ss.rdbuf();
+    } else {
+      // throw "Failed to write file " + destinationPath.string();
+      throw std::invalid_argument("Failed to write file: " +
+                                  destinationPath.string());
+    }
+  });
 }
 
 } // namespace cppaper
@@ -274,7 +303,7 @@ void cmdlineParse(std::string arg, std::function<void(std::string)> callback,
   }
 }
 
-//TODO config system?
+// TODO config system?
 void setSystem(entt::registry &registry) {
   using namespace cppaper;
 
@@ -296,12 +325,12 @@ int main(int argc, char *argv[], char *envp[]) try {
   cmdlineParse(
       "-O",
       [&registry](std::string value) {
-      const auto systemEntity = registry.view<SystemConfigComponent>().front();
+        const auto systemEntity =
+            registry.view<SystemConfigComponent>().front();
 
-      auto& systemConfig = registry.get<SystemConfigComponent>(systemEntity);
+        auto &systemConfig = registry.get<SystemConfigComponent>(systemEntity);
 
-      systemConfig.publicDirectory = std::filesystem::path { value + "/" };
-
+        systemConfig.publicDirectory = std::filesystem::path{value + "/"};
       },
       argc, argv);
   // TODO this is only temporary, I will make more robust
@@ -313,6 +342,8 @@ int main(int argc, char *argv[], char *envp[]) try {
   loadSiteDirectories(registry);
 
   loadSiteFiles(registry);
+
+  jsonSystem(registry);
 
   configSystem(registry);
 
@@ -327,16 +358,16 @@ int main(int argc, char *argv[], char *envp[]) try {
 
   templateSystem(registry);
 
-  //TODO markdown output html on output content when there is no template
+  // TODO markdown output html on output content when there is no template
   outputContent(registry);
 
   std::cout << "Done!" << std::endl;
 
   return 0;
-} catch(const std::exception &ex) {
+} catch (const std::exception &ex) {
   std::cerr << ex.what() << std::endl;
   return 1;
-} catch(...) {
+} catch (...) {
   std::cerr << "An unknown error ocurred" << std::endl;
   return 255;
 }

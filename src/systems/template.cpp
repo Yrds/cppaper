@@ -14,6 +14,7 @@
 #include "components/TitleComponent.hpp"
 #include "components/RawFileComponent.hpp"
 #include "components/IndexFileComponent.hpp"
+#include "components/JSONComponent.hpp"
 
 namespace cppaper {
 
@@ -34,10 +35,9 @@ inja::Template getTemplate(entt::registry &registry, const entt::entity entity,
     return env.parse_template("templates/" + config->map["template"]);
   }
 
-  std::string templatePath =
-      registry.get<OriginPathComponent>(entity).path.string();
-
-  return env.parse_template(templatePath);
+  //std::string templatePath =
+  //      registry.get<OriginPathComponent>(entity).path.string();
+  return env.parse("{{page.html}}");
   //}
 }
 
@@ -89,6 +89,11 @@ inline void generateContent(entt::registry &registry, const entt::entity entity,
     setDefaultEnvironmentVariables(data);
 
     loadDirectoryPages(parentDirectory.entity, registry, data);
+
+    if(auto jsonComponent = registry.try_get<JSONComponent>(entity)) {
+      std::cout << "loading json" << std::endl;
+      data["json"] = jsonComponent->data;
+    }
 
     for (const auto &[config, value] : config.map) {
       data["page"]["config"][config] = value;

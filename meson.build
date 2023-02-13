@@ -1,4 +1,4 @@
-project('cppaper', 'cpp', version: '0.8.0', default_options: ['cpp_std=c++20', 'default_library=static'])
+project('cppaper', 'cpp', version: '0.9.1', default_options: ['cpp_std=c++20', 'default_library=static'])
 
 
 src = files(
@@ -6,6 +6,7 @@ src = files(
   'src/systems/config.cpp',
   'src/systems/title.cpp',
   'src/systems/index.cpp',
+  'src/systems/json.cpp',
   'src/cppaper.cpp',
   )
 
