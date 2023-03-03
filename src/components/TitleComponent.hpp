@@ -3,7 +3,7 @@
 
 #include "entt/entt.hpp"
 
-namespace  {
+namespace cppaper {
   struct TitleComponent {
     std::string title;
   };
