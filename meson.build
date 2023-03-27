@@ -7,6 +7,7 @@ src = files(
   'src/systems/title.cpp',
   'src/systems/index.cpp',
   'src/systems/json.cpp',
+  'src/systems/directoriesMap.cpp',
   'src/cppaper.cpp',
   )
 

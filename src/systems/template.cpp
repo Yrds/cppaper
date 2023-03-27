@@ -7,14 +7,15 @@
 #include "components/FileComponent.hpp"
 #include "components/GeneratedContentComponent.hpp"
 #include "components/HtmlComponent.hpp"
+#include "components/IndexFileComponent.hpp"
+#include "components/JSONComponent.hpp"
 #include "components/PageContent.hpp"
 #include "components/ParentDirectory.hpp"
 #include "components/ParentSite.hpp"
 #include "components/PathComponent.hpp"
-#include "components/TitleComponent.hpp"
 #include "components/RawFileComponent.hpp"
-#include "components/IndexFileComponent.hpp"
-#include "components/JSONComponent.hpp"
+#include "components/SystemConfigComponent.hpp"
+#include "components/TitleComponent.hpp"
 
 namespace cppaper {
 
@@ -118,6 +119,21 @@ inline void generateContent(entt::registry &registry, const entt::entity entity,
 
     registry.emplace<GeneratedContentComponent>(entity,
                                                 env.render(templ, data));
+}
+
+inline void registerCallbacks(entt::registry &registry, inja::Environment &env) {
+
+  auto systemEntity = registry.view<SystemConfigComponent>().front();
+  auto systemConfig = registry.get<SystemConfigComponent>(systemEntity);
+
+  env.add_callback("getPages", 1, [&systemConfig](inja::Arguments args) {
+      auto directoryPath = args.at(0)->get<std::string>();
+
+      if(systemConfig.directoriesMap.contains(directoryPath)) {
+      }
+
+      return 0;
+  });
 }
 
 void templateSystem(entt::registry &registry) {

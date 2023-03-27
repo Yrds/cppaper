@@ -29,6 +29,7 @@
 #include "components/SystemConfigComponent.hpp"
 
 #include "systems/config.hpp"
+#include "systems/directoriesMap.hpp"
 #include "systems/index.hpp"
 #include "systems/json.hpp"
 #include "systems/template.hpp"
@@ -340,6 +341,8 @@ int main(int argc, char *argv[], char *envp[]) try {
   getSite(registry);
 
   loadSiteDirectories(registry);
+
+  directoriesMapSystem(registry);
 
   loadSiteFiles(registry);
 
