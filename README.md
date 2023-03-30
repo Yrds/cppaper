@@ -105,7 +105,7 @@ Generally you can use variables like this way:
 
 |Variable|Description|
 |config|Access all configs and its values|
-|pages|An array with all pages from directory|
+|[DEPRECATED] pages|An array with all pages from directory|
 
 
 #### Page

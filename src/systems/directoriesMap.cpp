@@ -1,21 +1,28 @@
+#include<iostream>
+
 #include "systems/directoriesMap.hpp"
 
 #include "components/DirectoryComponent.hpp"
-#include "components/PathComponent.hpp"
+#include "components/RelativePath.hpp"
 #include "components/SystemConfigComponent.hpp"
+
+
 
 namespace cppaper {
 void directoriesMapSystem(entt::registry& registry) {
   auto directoriesView =
-      registry.view<const OriginPathComponent, const DirectoryComponent>();
+      registry.view<const RelativePathComponent, const DirectoryComponent>();
 
   auto systemEntity = registry.view<SystemConfigComponent>().front();
-  SystemConfigComponent systemConfig =
+  SystemConfigComponent& systemConfig =
       registry.get<SystemConfigComponent>(systemEntity);
+
+  std::cout << "directories map:" << std::endl;
 
   directoriesView.each(
       [&systemConfig](const auto entity, const auto pathComponent) {
-        systemConfig.directoriesMap[pathComponent.path] = entity;
+        std::cout << static_cast<int>(entity) << ": " << pathComponent.path.string() << std::endl;
+        systemConfig.directoriesMap[pathComponent.path.string()] = entity;
       });
 }
 } // namespace cppaper

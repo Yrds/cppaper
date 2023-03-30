@@ -123,20 +123,54 @@ inline void generateContent(entt::registry &registry, const entt::entity entity,
 
 inline void registerCallbacks(entt::registry &registry, inja::Environment &env) {
 
-  auto systemEntity = registry.view<SystemConfigComponent>().front();
-  auto systemConfig = registry.get<SystemConfigComponent>(systemEntity);
 
-  env.add_callback("getPages", 1, [&systemConfig](inja::Arguments args) {
-      auto directoryPath = args.at(0)->get<std::string>();
+  env.add_callback("getPagesFrom", 1, [&registry](inja::Arguments args) {
 
-      if(systemConfig.directoriesMap.contains(directoryPath)) {
+      std::cout << "get pages from" << std::endl;
+
+      auto systemEntity = registry.view<SystemConfigComponent>().front();
+      auto systemConfig = registry.get<SystemConfigComponent>(systemEntity);
+
+      auto relativePath = args.at(0)->get<std::string>();
+
+      inja::json data = inja::json::array();
+
+      if(systemConfig.directoriesMap.contains(relativePath)) {
+
+        std::cout << "relative path found" << std::endl;
+
+        auto directoryEntity  = systemConfig.directoriesMap[relativePath];
+
+        auto dirChildren = registry.get<ChildFileComponent>(directoryEntity);
+
+        for (const auto fileEntity : dirChildren.children) {
+          auto &originPath = registry.get<OriginPathComponent>(fileEntity);
+
+          auto relativePath = std::filesystem::path(
+              std::filesystem::relative(originPath.path,
+                                        std::filesystem::path("pages"))
+                  .string());
+
+          relativePath.replace_extension(".html"); // TODO this logics seems strange
+
+          data +=
+              {{"title", registry.get<TitleComponent>(fileEntity).title},
+               {"path", relativePath.string()},
+               {"id", fileEntity}};
+        }
+
+      //TODO retrieve pages of a directory given the RELATIVEPATH
       }
 
-      return 0;
+      return data;
   });
 }
 
 void templateSystem(entt::registry &registry) {
+  std::cout << "[INFO] Template System" << std::endl;
+
+  registerCallbacks(registry, env);
+
   auto view = registry.view<const FileComponent, const ParentDirectoryComponent,
                             const ParentSite, const ConfigComponent,
                             const TitleComponent>();
