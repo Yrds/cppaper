@@ -117,6 +117,32 @@ Generally you can use variables like this way:
 |json|JSON variables (for .json page)|
 
 
+### Special template functions
+
+## getPagesFrom
+
+return an array of pages given a project relative path directory
+
+
+Example:
+
+```
+    {% for page in getPagesFrom(".") %}
+      <a href="{{page.path}}">{{page.title}}</a>
+    {% endfor %}
+```
+
+page structure:
+
+```
+{
+    title: string,
+    path: string,
+    id: number
+}
+```
+
+
 ## Docs
 
 The docs are still in development, and is available [online in html version](https://cppaper.yurisantos.dev)
