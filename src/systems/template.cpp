@@ -124,6 +124,7 @@ inline void generateContent(entt::registry &registry, const entt::entity entity,
 inline void registerCallbacks(entt::registry &registry, inja::Environment &env) {
 
 
+  //TODO add a parameter to get first N items. Ex: limit: 5. Then this will bring the first 5 items.
   env.add_callback("getPagesFrom", 1, [&registry](inja::Arguments args) {
 
       std::cout << "get pages from" << std::endl;
