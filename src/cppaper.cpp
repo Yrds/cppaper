@@ -347,13 +347,15 @@ int main(int argc, char *argv[], char *envp[]) try {
 
   loadSiteFiles(registry);
 
+  configSystem(registry);
+
+  // TODO ignoreSystem: read config "ignore" key, and then remove from the registry
+
   relativePathSystem(registry);
 
   directoriesMapSystem(registry);
 
   jsonSystem(registry);
-
-  configSystem(registry);
 
   indexSystem(registry);
 
