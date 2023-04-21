@@ -123,48 +123,6 @@ inline void generateContent(entt::registry &registry, const entt::entity entity,
 
 inline void registerCallbacks(entt::registry &registry, inja::Environment &env) {
 
-
-  //TODO add a parameter to get first N items. Ex: limit: 5. Then this will bring the first 5 items.
-  env.add_callback("getPagesFrom", 1, [&registry](inja::Arguments args) {
-
-      std::cout << "get pages from" << std::endl;
-
-      auto systemEntity = registry.view<SystemConfigComponent>().front();
-      auto systemConfig = registry.get<SystemConfigComponent>(systemEntity);
-
-      auto relativePath = args.at(0)->get<std::string>();
-
-      inja::json data = inja::json::array();
-
-      if(systemConfig.directoriesMap.contains(relativePath)) {
-
-        std::cout << "relative path found" << std::endl;
-
-        auto directoryEntity  = systemConfig.directoriesMap[relativePath];
-
-        auto dirChildren = registry.get<ChildFileComponent>(directoryEntity);
-
-        for (const auto fileEntity : dirChildren.children) {
-          auto &originPath = registry.get<OriginPathComponent>(fileEntity);
-
-          auto relativePath = std::filesystem::path(
-              std::filesystem::relative(originPath.path,
-                                        std::filesystem::path("pages"))
-                  .string());
-
-          relativePath.replace_extension(".html"); // TODO this logics seems strange
-
-          data +=
-              {{"title", registry.get<TitleComponent>(fileEntity).title},
-               {"path", relativePath.string()},
-               {"id", fileEntity}};
-        }
-
-      //TODO retrieve pages of a directory given the RELATIVEPATH
-      }
-
-      return data;
-  });
 }
 
 void templateSystem(entt::registry &registry) {

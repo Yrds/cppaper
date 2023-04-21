@@ -10,6 +10,9 @@ src = files(
   'src/systems/directoriesMap.cpp',
   'src/systems/relativePath.cpp',
   'src/cppaper.cpp',
+
+  #Template functions
+  'src/template/functions/getPagesFrom.cpp'
   )
 
 inc = include_directories('src')
