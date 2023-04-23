@@ -5,7 +5,7 @@
 #include "entt/entt.hpp"
 
 namespace cppaper {
-  void getPagesFrom(entt::registry& registry, inja::Environment env);
+  void getPagesFrom(entt::registry& registry, inja::Environment& env);
 }
 
 #endif

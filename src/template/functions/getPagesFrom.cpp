@@ -6,7 +6,7 @@
 #include "components/TitleComponent.hpp"
 
 namespace cppaper {
-void getPagesFrom(entt::registry &registry, inja::Environment env) {
+void getPagesFrom(entt::registry &registry, inja::Environment& env) {
 
   env.add_callback("getPagesFrom", 1, [&registry](inja::Arguments args) {
     auto systemEntity = registry.view<SystemConfigComponent>().front();
