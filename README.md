@@ -150,7 +150,7 @@ page structure:
 
 ## getConfigFrom(id: number)
 
-return a key:value (typescript Record<string, string>) of configs from an file
+return a key:value (typescript Record<string, string>) of configs from a file
 
 Example:
 ```
