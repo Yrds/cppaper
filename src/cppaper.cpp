@@ -10,8 +10,8 @@
 
 #include "Site.hpp"
 #include "cmark-gfm.h"
-#include "components/ParentDirectory.hpp"
 
+#include "components/ParentDirectory.hpp"
 #include "components/ChildFileComponent.hpp"
 #include "components/Config.hpp"
 #include "components/DirectoryComponent.hpp"
@@ -29,8 +29,10 @@
 #include "components/SystemConfigComponent.hpp"
 
 #include "systems/config.hpp"
+#include "systems/directoriesMap.hpp"
 #include "systems/index.hpp"
 #include "systems/json.hpp"
+#include "systems/relativePath.hpp"
 #include "systems/template.hpp"
 #include "systems/title.hpp"
 
@@ -314,6 +316,8 @@ void setSystem(entt::registry &registry) {
 int main(int argc, char *argv[], char *envp[]) try {
   using namespace cppaper;
 
+  std::cout << "[DEPRECATION] directory.pages is deprecated in favor of getPagesFrom() template function and will be removed in future versions" << std::endl;
+
   entt::registry registry;
 
   setSystem(registry);
@@ -343,9 +347,15 @@ int main(int argc, char *argv[], char *envp[]) try {
 
   loadSiteFiles(registry);
 
-  jsonSystem(registry);
-
   configSystem(registry);
+
+  // TODO ignoreSystem: read config "ignore" key, and then remove from the registry
+
+  relativePathSystem(registry);
+
+  directoriesMapSystem(registry);
+
+  jsonSystem(registry);
 
   indexSystem(registry);
 

@@ -1,5 +1,4 @@
-project('cppaper', 'cpp', version: '0.10.0', default_options: ['cpp_std=c++20', 'default_library=static'])
-
+project('cppaper', 'cpp', version: '0.13.1', default_options: ['cpp_std=c++20', 'default_library=static'])
 
 src = files(
   'src/systems/template.cpp',
@@ -7,7 +6,13 @@ src = files(
   'src/systems/title.cpp',
   'src/systems/index.cpp',
   'src/systems/json.cpp',
+  'src/systems/directoriesMap.cpp',
+  'src/systems/relativePath.cpp',
   'src/cppaper.cpp',
+
+  #Template functions
+  'src/template/functions/getPagesFrom.cpp',
+  'src/template/functions/getConfigFrom.cpp',
   )
 
 inc = include_directories('src')

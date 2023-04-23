@@ -7,14 +7,17 @@
 #include "components/FileComponent.hpp"
 #include "components/GeneratedContentComponent.hpp"
 #include "components/HtmlComponent.hpp"
+#include "components/IndexFileComponent.hpp"
+#include "components/JSONComponent.hpp"
 #include "components/PageContent.hpp"
 #include "components/ParentDirectory.hpp"
 #include "components/ParentSite.hpp"
 #include "components/PathComponent.hpp"
-#include "components/TitleComponent.hpp"
 #include "components/RawFileComponent.hpp"
-#include "components/IndexFileComponent.hpp"
-#include "components/JSONComponent.hpp"
+#include "components/SystemConfigComponent.hpp"
+#include "components/TitleComponent.hpp"
+#include "template/functions/getConfigFrom.hpp"
+#include "template/functions/getPagesFrom.hpp"
 
 namespace cppaper {
 
@@ -120,7 +123,16 @@ inline void generateContent(entt::registry &registry, const entt::entity entity,
                                                 env.render(templ, data));
 }
 
+inline void registerCallbacks(entt::registry &registry, inja::Environment &env) {
+  getPagesFrom(registry, env);
+  getConfigFrom(registry, env);
+}
+
 void templateSystem(entt::registry &registry) {
+  std::cout << "[INFO] Template System" << std::endl;
+
+  registerCallbacks(registry, env);
+
   auto view = registry.view<const FileComponent, const ParentDirectoryComponent,
                             const ParentSite, const ConfigComponent,
                             const TitleComponent>();

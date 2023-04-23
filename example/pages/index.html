@@ -3,11 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <title> Title </title>
+    <title> {{page.title}} </title>
   </head>
   <body>
-    {% for page in directory.pages %}
-    <a href="{{page.path}}">{{page.title}}</a>
+    {% for page in getPagesFrom(".") %}
+      <a href="{{page.path}}">{{page.title}}</a>
+
+      {% set config=getConfigFrom(page.id) %}
+
+
+      <!-- 
+        {{config}}
+      -->
     {% endfor %}
   </body>
 </html>
