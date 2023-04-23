@@ -12,7 +12,8 @@ src = files(
   'src/cppaper.cpp',
 
   #Template functions
-  'src/template/functions/getPagesFrom.cpp'
+  'src/template/functions/getPagesFrom.cpp',
+  'src/template/functions/getConfigFrom.cpp',
   )
 
 inc = include_directories('src')

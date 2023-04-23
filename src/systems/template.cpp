@@ -16,6 +16,7 @@
 #include "components/RawFileComponent.hpp"
 #include "components/SystemConfigComponent.hpp"
 #include "components/TitleComponent.hpp"
+#include "template/functions/getPagesFrom.hpp"
 
 namespace cppaper {
 
@@ -122,7 +123,7 @@ inline void generateContent(entt::registry &registry, const entt::entity entity,
 }
 
 inline void registerCallbacks(entt::registry &registry, inja::Environment &env) {
-
+  getPagesFrom(registry, env);
 }
 
 void templateSystem(entt::registry &registry) {

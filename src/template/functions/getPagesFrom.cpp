@@ -5,9 +5,10 @@
 #include "components/SystemConfigComponent.hpp"
 #include "components/TitleComponent.hpp"
 
+namespace cppaper {
 void getPagesFrom(entt::registry &registry, inja::Environment env) {
 
-env.add_callback("getPagesFrom", 1, [&registry](inja::Arguments args) {
+  env.add_callback("getPagesFrom", 1, [&registry](inja::Arguments args) {
     auto systemEntity = registry.view<SystemConfigComponent>().front();
     auto systemConfig = registry.get<SystemConfigComponent>(systemEntity);
 
@@ -45,3 +46,4 @@ env.add_callback("getPagesFrom", 1, [&registry](inja::Arguments args) {
     return data;
   });
 }
+} // namespace cppaper
