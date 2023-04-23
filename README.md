@@ -119,7 +119,7 @@ Generally you can use variables like this way:
 
 ### Special template functions
 
-## getPagesFrom
+## getPagesFrom(path: string)
 
 return an array of pages given a project relative path directory
 
@@ -140,6 +140,18 @@ page structure:
     path: string,
     id: number
 }
+```
+
+## getConfigFrom(id: number)
+
+return a key:value (typescript Record<string, string>) of configs from an file
+
+Example:
+```
+  {% for page in getPagesFrom(".") %}
+    {% set config = getConfigFrom(page.id) %}
+    {{ config }}
+  {% endfor %}
 ```
 
 

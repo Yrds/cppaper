@@ -8,6 +8,13 @@
   <body>
     {% for page in getPagesFrom(".") %}
       <a href="{{page.path}}">{{page.title}}</a>
+
+      {% set config=getConfigFrom(page.id) %}
+
+
+      <!-- 
+        {{config}}
+      -->
     {% endfor %}
   </body>
 </html>
