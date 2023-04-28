@@ -25,7 +25,6 @@ inja_sub = subproject('inja')
 entt_sub = subproject('entt')
 
 
-
 cppaper_exe = executable('cppaper', src, include_directories: inc, dependencies: [
   cmark_gfm_sub.get_variable('cmark_gfm_dep'),
   inja_sub.get_variable('inja_dep'),
@@ -38,3 +37,6 @@ cppaper_exe = executable('cppaper', src, include_directories: inc, dependencies:
 
 generate_docs = run_target('docs', depends:[cppaper_exe],
   command: ['generate_docs.sh'])
+
+#TODO benchmark
+#bm_markdown_250 = benchmark('markdown_250', 'cppaper', args: ['-C', './bench'] depends: [cppaper_exe])
