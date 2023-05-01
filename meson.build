@@ -9,6 +9,7 @@ src = files(
   'src/systems/json.cpp',
   'src/systems/directoriesMap.cpp',
   'src/systems/relativePath.cpp',
+  'src/systems/extension.cpp',
   'src/cppaper.cpp',
 
   #Template functions
