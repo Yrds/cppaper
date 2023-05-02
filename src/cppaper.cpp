@@ -35,6 +35,7 @@
 #include "systems/relativePath.hpp"
 #include "systems/template.hpp"
 #include "systems/title.hpp"
+#include "systems/extension.hpp"
 
 #include "entt/entt.hpp"
 
@@ -125,39 +126,20 @@ void loadSiteFiles(entt::registry &registry) {
       registry.emplace<ParentDirectoryComponent>(fileEntity, dirEntity);
       children.children.push_back(fileEntity);
 
-      auto const pathExtension = dirEntry.path().extension().string();
-
-      // TODO move this to other system or function inside the same system
-      if (pathExtension == ".md") {
-        registry.emplace<MarkdownComponent>(fileEntity);
-      } else if (pathExtension == ".html") {
-        registry.emplace<HTMLComponent>(fileEntity);
-      } else if (pathExtension == ".json") {
-        registry.emplace<JSONComponent>(fileEntity);
-      } else {
-        // NOTE UGly code
-        registry.emplace<RawFileComponent>(fileEntity);
-        registry.emplace<OriginPathComponent>(fileEntity, dirEntry.path());
-        continue;
-      }
 
       registry.emplace<OriginPathComponent>(fileEntity, dirEntry.path());
-      // TODO replace or add relativePathComponent?
 
-      registry.emplace<PageContentComponent>(
-          fileEntity); // TODO not every PageContent(?)
     }
   });
 }
 
 void generateContent(entt::registry &registry) {
   const auto markdownView =
-      registry.view<const OriginPathComponent, PageContentComponent,
-                    const MarkdownComponent, const FileComponent,
-                    const ConfigComponent>();
+      registry.view<const OriginPathComponent, const MarkdownComponent,
+                    const FileComponent, const ConfigComponent>();
 
   markdownView.each(
-      [](const auto &originPath, auto &pageContent, auto &config) {
+      [&registry](const auto entity, const auto &originPath, auto &config) {
         std::ifstream mdFile(originPath.path, std::ios::binary);
 
         if (mdFile.is_open()) {
@@ -176,8 +158,9 @@ void generateContent(entt::registry &registry) {
           }
 
           // TODO Include cmark extensions
-          pageContent.content = std::string{cmark_markdown_to_html(
-              mdContent.c_str(), mdContent.size(), cmark_options)};
+          registry.emplace<PageContentComponent>(
+              entity, std::string{cmark_markdown_to_html(
+                          mdContent.c_str(), mdContent.size(), cmark_options)});
         }
       });
 }
@@ -341,34 +324,55 @@ int main(int argc, char *argv[], char *envp[]) try {
 
   // TODO Refactoring name of system functions to System Acronym and move to
   // properly directories "systems"
+
+  std::cout << "Getting site" << std::endl;
   getSite(registry);
 
+
+  std::cout << "Loading directories" << std::endl;;
   loadSiteDirectories(registry);
 
+  std::cout << "Reading files" << std::endl;
   loadSiteFiles(registry);
 
+  std::cout << "Processing extensions" << std::endl;
+  extensionSystem(registry);
+
+  //extensionSystem(registry);
+
+  std::cout << "Reading configuration" << std::endl;
   configSystem(registry);
 
-  // TODO ignoreSystem: read config "ignore" key, and then remove from the registry
+  // TODO ignoreSystem: read config "output=false" key, and then remove from the registry
 
+  std::cout << "Parsing relative path" << std::endl;
   relativePathSystem(registry);
 
+
+  std::cout << "Mounting directories map" << std::endl;
   directoriesMapSystem(registry);
 
+  std::cout << "Parsing JSON Files" << std::endl;
   jsonSystem(registry);
 
+
+  std::cout << "Running Indexing System" << std::endl;
   indexSystem(registry);
 
+  std::cout << "Title System" << std::endl;
   titleSystem(registry);
 
   // TODO make a site map and add it to template config(only for
   // GeneratedContentComponent)
 
+  std::cout << "Generating Content" << std::endl;
   generateContent(registry);
 
+  std::cout << "Mounting templates" << std::endl;
   templateSystem(registry);
 
   // TODO markdown output html on output content when there is no template
+  std::cout << "Writing content" << std::endl;
   outputContent(registry);
 
   std::cout << "Done!" << std::endl;
