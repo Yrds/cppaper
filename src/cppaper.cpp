@@ -187,6 +187,7 @@ void outputContent(entt::registry &registry) {
   const std::filesystem::path pagesPath{"pages"};
 
   const auto systemEntity = registry.view<SystemConfigComponent>().front();
+
   const std::filesystem::path publicDirectory =
       registry.get<SystemConfigComponent>(systemEntity).publicDirectory;
 
@@ -243,6 +244,7 @@ void outputContent(entt::registry &registry) {
 
   // NOTE I wonder if it's better just to ignore files in public directory that
   // doesn't have extension instead of just copying "raw files"
+  // IDEA 1: Don't remove rawFiles(see clearDirectory function)
   rawFileView.each([&pagesPath, &publicDirectory](const auto &originPath) {
     auto destinationPath = std::filesystem::path(
         publicDirectory.string() +
