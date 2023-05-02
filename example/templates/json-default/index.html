@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{{ site.config.name }} - {{ page.title }}</title>
+  </head>
+  <body>
+    {% for page in getPagesFrom("json-test") %}
+      <div>
+        <a href="/{{page.path}}">{{page.title}}</a>
+        {% set config=getConfigFrom(page.id) %}
+        {% set json=getJsonFrom(page.id) %}
+        <div>
+          {{json}}
+        </div>
+      </div>
+
+
+      <!-- 
+        {{config}}
+      -->
+    {% endfor %}
+  </body>
+</html>
