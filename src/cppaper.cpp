@@ -10,6 +10,7 @@
 
 #include "Site.hpp"
 #include "cmark-gfm.h"
+#include "cmark-gfm-core-extensions.h"
 
 #include "components/ParentDirectory.hpp"
 #include "components/ChildFileComponent.hpp"
@@ -138,6 +139,8 @@ void generateContent(entt::registry &registry) {
       registry.view<const OriginPathComponent, const MarkdownComponent,
                     const FileComponent, const ConfigComponent>();
 
+  cmark_gfm_core_extensions_ensure_registered();
+
   markdownView.each(
       [&registry](const auto entity, const auto &originPath, auto &config) {
         std::ifstream mdFile(originPath.path, std::ios::binary);
@@ -157,10 +160,34 @@ void generateContent(entt::registry &registry) {
             cmark_options |= CMARK_OPT_UNSAFE;
           }
 
+          cmark_parser *parser = cmark_parser_new(cmark_options);
+
+          const char *extension_names[] = {
+              "autolink", "strikethrough", "table", "tagfilter", NULL,
+          };
+
+          for (const char **it = extension_names; *it; ++it) {
+            const char *extension_name = *it;
+            cmark_syntax_extension *syntax_extension =
+                cmark_find_syntax_extension(extension_name);
+            if (!syntax_extension) {
+              fprintf(stderr, "%s is not a valid syntax extension\n",
+                      extension_name);
+              abort();
+            }
+            cmark_parser_attach_syntax_extension(parser, syntax_extension);
+          }
+
+          cmark_parser_feed(parser, mdContent.c_str(), mdContent.size());
+
+          cmark_node *doc = cmark_parser_finish(parser);
+
           // TODO Include cmark extensions
           registry.emplace<PageContentComponent>(
-              entity, std::string{cmark_markdown_to_html(
-                          mdContent.c_str(), mdContent.size(), cmark_options)});
+              entity, std::string{cmark_render_html(doc, cmark_options, NULL)});
+
+          cmark_node_free(doc);
+          cmark_parser_free(parser);
         }
       });
 }
