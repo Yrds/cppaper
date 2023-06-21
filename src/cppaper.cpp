@@ -3,14 +3,11 @@
 #include <iostream>
 #include <map>
 #include <queue>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
 #include "Site.hpp"
-#include "cmark-gfm.h"
-#include "cmark-gfm-core-extensions.h"
 
 #include "components/ParentDirectory.hpp"
 #include "components/ChildFileComponent.hpp"
@@ -33,6 +30,7 @@
 #include "systems/directoriesMap.hpp"
 #include "systems/index.hpp"
 #include "systems/json.hpp"
+#include "systems/markdown.hpp"
 #include "systems/relativePath.hpp"
 #include "systems/template.hpp"
 #include "systems/title.hpp"
@@ -134,63 +132,7 @@ void loadSiteFiles(entt::registry &registry) {
   });
 }
 
-void generateContent(entt::registry &registry) {
-  const auto markdownView =
-      registry.view<const OriginPathComponent, const MarkdownComponent,
-                    const FileComponent, const ConfigComponent>();
 
-  cmark_gfm_core_extensions_ensure_registered();
-
-  markdownView.each(
-      [&registry](const auto entity, const auto &originPath, auto &config) {
-        std::ifstream mdFile(originPath.path, std::ios::binary);
-
-        if (mdFile.is_open()) {
-          std::stringstream ss;
-
-          ss << mdFile.rdbuf();
-
-          auto mdContent = ss.str();
-
-          int cmark_options = CMARK_OPT_DEFAULT;
-
-          if (auto markdownUnsafe = config.map.find("markdown_unsafe");
-              markdownUnsafe != config.map.end() &&
-              markdownUnsafe->second == "true") {
-            cmark_options |= CMARK_OPT_UNSAFE;
-          }
-
-          cmark_parser *parser = cmark_parser_new(cmark_options);
-
-          const char *extension_names[] = {
-              "autolink", "strikethrough", "table", "tagfilter", NULL,
-          };
-
-          for (const char **it = extension_names; *it; ++it) {
-            const char *extension_name = *it;
-            cmark_syntax_extension *syntax_extension =
-                cmark_find_syntax_extension(extension_name);
-            if (!syntax_extension) {
-              fprintf(stderr, "%s is not a valid syntax extension\n",
-                      extension_name);
-              abort();
-            }
-            cmark_parser_attach_syntax_extension(parser, syntax_extension);
-          }
-
-          cmark_parser_feed(parser, mdContent.c_str(), mdContent.size());
-
-          cmark_node *doc = cmark_parser_finish(parser);
-
-          // TODO Include cmark extensions
-          registry.emplace<PageContentComponent>(
-              entity, std::string{cmark_render_html(doc, cmark_options, NULL)});
-
-          cmark_node_free(doc);
-          cmark_parser_free(parser);
-        }
-      });
-}
 
 void clearDirectory(std::filesystem::path directory) {
   if (std::filesystem::is_directory(directory)) {
@@ -328,8 +270,6 @@ void setSystem(entt::registry &registry) {
 int main(int argc, char *argv[], char *envp[]) try {
   using namespace cppaper;
 
-  std::cout << "[DEPRECATION] directory.pages is deprecated in favor of getPagesFrom() template function and will be removed in future versions" << std::endl;
-
   entt::registry registry;
 
   setSystem(registry);
@@ -391,11 +331,10 @@ int main(int argc, char *argv[], char *envp[]) try {
   std::cout << "Title System" << std::endl;
   titleSystem(registry);
 
-  // TODO make a site map and add it to template config(only for
-  // GeneratedContentComponent)
+  /* TODO make a site map and add it to template config(only for output content) */
 
   std::cout << "Generating Content" << std::endl;
-  generateContent(registry);
+  markdownSystem(registry);
 
   std::cout << "Mounting templates" << std::endl;
   templateSystem(registry);

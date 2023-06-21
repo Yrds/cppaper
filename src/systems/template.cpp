@@ -20,6 +20,8 @@
 #include "template/functions/getPagesFrom.hpp"
 #include "template/functions/getJsonFrom.hpp"
 
+//TODO create a function to process generated content as inja templates
+
 namespace cppaper {
 
 inja::Template getTemplate(entt::registry &registry, const entt::entity entity,
@@ -49,30 +51,6 @@ void setDefaultEnvironmentVariables(inja::json &data) {
   data["site"]["template_dir"] = std::filesystem::path("./templates/").string();
 }
 
-// TODO make this a callback(and add filter to files that user don't want to see(regex? maybe))
-void loadDirectoryPages(entt::entity directoryEntity, entt::registry &registry,
-                        inja::json &data) {
-  auto dirChildren = registry.get<ChildFileComponent>(directoryEntity);
-
-  data["directory"]["pages"] = {};
-
-  for (const auto fileEntity : dirChildren.children) {
-    auto &originPath = registry.get<OriginPathComponent>(fileEntity);
-
-    auto relativePath = std::filesystem::path(
-        std::filesystem::relative(originPath.path,
-                                  std::filesystem::path("pages"))
-            .string());
-
-    relativePath.replace_extension(".html"); // TODO this logics seems strange
-
-    data["directory"]["pages"] +=
-        {{"title", registry.get<TitleComponent>(fileEntity).title},
-         {"path", relativePath.string()},
-         {"id", fileEntity}};
-  }
-}
-
 static inja::Environment env;
 
 inline void generateContent(entt::registry &registry, const entt::entity entity,
@@ -91,8 +69,6 @@ inline void generateContent(entt::registry &registry, const entt::entity entity,
     inja::json data;
 
     setDefaultEnvironmentVariables(data);
-
-    loadDirectoryPages(parentDirectory.entity, registry, data);
 
     if(auto jsonComponent = registry.try_get<JSONComponent>(entity)) {
       data["page"]["json"] = jsonComponent->data;
@@ -138,7 +114,6 @@ void templateSystem(entt::registry &registry) {
                             const ParentSite, const ConfigComponent,
                             const TitleComponent>();
 
-  //FIXME IndexFileComponent are not being included in this view
   view.each([&registry](const auto entity, const auto &parentDirectory,
                         const auto &parentSite, const auto &config,
                         const auto &title) {
@@ -146,19 +121,5 @@ void templateSystem(entt::registry &registry) {
                     title);
   });
 
-  //auto indexFileView =
-  //    registry.view<const IndexFileComponent, const ParentDirectoryComponent,
-  //                  const ParentSite, const ConfigComponent,
-  //                  const TitleComponent>();
-
-  //indexFileView.each([&registry](const auto entity, const auto &indexFile,
-  //                               const auto &parentDirectory,
-  //                               const auto &parentSite, const auto &config,
-  //                               const auto &title) {
-  //  generateContent(registry, entity, parentDirectory, parentSite, config,
-  //                  title);
-  //});
-
-  // TODO separate entities that don't have templates and those who have.
 }
 } // namespace cppaper

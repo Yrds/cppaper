@@ -1,4 +1,4 @@
-project('cppaper', 'cpp', version: '0.15.0', default_options: ['cpp_std=c++20', 'default_library=static'])
+project('cppaper', 'cpp', version: '0.16.0', default_options: ['cpp_std=c++20', 'default_library=static'])
 
 
 src = files(
@@ -10,6 +10,7 @@ src = files(
   'src/systems/directoriesMap.cpp',
   'src/systems/relativePath.cpp',
   'src/systems/extension.cpp',
+  'src/systems/markdown.cpp',
   'src/cppaper.cpp',
 
   #Template functions
