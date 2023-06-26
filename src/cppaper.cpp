@@ -35,6 +35,7 @@
 #include "systems/template.hpp"
 #include "systems/title.hpp"
 #include "systems/extension.hpp"
+#include "systems/tag.hpp"
 
 #include "entt/entt.hpp"
 
@@ -309,10 +310,12 @@ int main(int argc, char *argv[], char *envp[]) try {
 
   //extensionSystem(registry);
 
+  // TODO ignoreSystem: read config "output=false" key, and then remove from the registry
   std::cout << "Reading configuration" << std::endl;
   configSystem(registry);
 
-  // TODO ignoreSystem: read config "output=false" key, and then remove from the registry
+  std::cout << "Indexing tags" << std::endl;
+  createTagIndex(registry);
 
   std::cout << "Parsing relative path" << std::endl;
   relativePathSystem(registry);
@@ -323,7 +326,6 @@ int main(int argc, char *argv[], char *envp[]) try {
 
   std::cout << "Parsing JSON Files" << std::endl;
   jsonSystem(registry);
-
 
   std::cout << "Running Indexing System" << std::endl;
   indexSystem(registry);
