@@ -2,6 +2,9 @@ project('cppaper', 'cpp', version: '0.16.0', default_options: ['cpp_std=c++20', 
 
 
 src = files(
+  #Utils
+  'src/string_utils.cpp',
+
   'src/systems/template.cpp',
   'src/systems/config.cpp',
   'src/systems/title.cpp',
@@ -11,6 +14,7 @@ src = files(
   'src/systems/relativePath.cpp',
   'src/systems/extension.cpp',
   'src/systems/markdown.cpp',
+  'src/systems/tag.cpp',
   'src/cppaper.cpp',
 
   #Template functions
