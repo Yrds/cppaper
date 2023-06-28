@@ -6,15 +6,27 @@
     <title> {{page.title}} </title>
   </head>
   <body>
+    <h2> getPagesFrom example </h2>
+    <ul>
+      <li>
     {% for page in getPagesFrom(".") %}
-      <a href="{{page.path}}">{{page.title}}</a>
 
       {% set config=getConfigFrom(page.id) %}
-
-
       <!-- 
         {{config}}
       -->
+      <a href="{{page.path}}">{{page.title}}</a>
+
     {% endfor %}
+      </li>
+    </ul>
+
+    <h2>Pages with the tag 'test'</h2>
+    <ul>
+      {% for page in getPagesByTag("test") %}
+        <li>{{getConfigFrom(page)}}</li>
+      {% endfor %}
+      <li></li>
+    </ul>
   </body>
 </html>

@@ -3,13 +3,11 @@
 #include <iostream>
 #include <map>
 #include <queue>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
 #include "Site.hpp"
-#include "cmark-gfm.h"
 
 #include "components/ParentDirectory.hpp"
 #include "components/ChildFileComponent.hpp"
@@ -30,11 +28,16 @@
 
 #include "systems/config.hpp"
 #include "systems/directoriesMap.hpp"
+#include "systems/fileContent.hpp"
 #include "systems/index.hpp"
 #include "systems/json.hpp"
+#include "systems/markdown.hpp"
 #include "systems/relativePath.hpp"
 #include "systems/template.hpp"
 #include "systems/title.hpp"
+#include "systems/extension.hpp"
+#include "systems/tag.hpp"
+#include "systems/fileContent.hpp"
 
 #include "entt/entt.hpp"
 
@@ -125,62 +128,14 @@ void loadSiteFiles(entt::registry &registry) {
       registry.emplace<ParentDirectoryComponent>(fileEntity, dirEntity);
       children.children.push_back(fileEntity);
 
-      auto const pathExtension = dirEntry.path().extension().string();
-
-      // TODO move this to other system or function inside the same system
-      if (pathExtension == ".md") {
-        registry.emplace<MarkdownComponent>(fileEntity);
-      } else if (pathExtension == ".html") {
-        registry.emplace<HTMLComponent>(fileEntity);
-      } else if (pathExtension == ".json") {
-        registry.emplace<JSONComponent>(fileEntity);
-      } else {
-        // NOTE UGly code
-        registry.emplace<RawFileComponent>(fileEntity);
-        registry.emplace<OriginPathComponent>(fileEntity, dirEntry.path());
-        continue;
-      }
 
       registry.emplace<OriginPathComponent>(fileEntity, dirEntry.path());
-      // TODO replace or add relativePathComponent?
 
-      registry.emplace<PageContentComponent>(
-          fileEntity); // TODO not every PageContent(?)
     }
   });
 }
 
-void generateContent(entt::registry &registry) {
-  const auto markdownView =
-      registry.view<const OriginPathComponent, PageContentComponent,
-                    const MarkdownComponent, const FileComponent,
-                    const ConfigComponent>();
 
-  markdownView.each(
-      [](const auto &originPath, auto &pageContent, auto &config) {
-        std::ifstream mdFile(originPath.path, std::ios::binary);
-
-        if (mdFile.is_open()) {
-          std::stringstream ss;
-
-          ss << mdFile.rdbuf();
-
-          auto mdContent = ss.str();
-
-          int cmark_options = CMARK_OPT_DEFAULT;
-
-          if (auto markdownUnsafe = config.map.find("markdown_unsafe");
-              markdownUnsafe != config.map.end() &&
-              markdownUnsafe->second == "true") {
-            cmark_options |= CMARK_OPT_UNSAFE;
-          }
-
-          // TODO Include cmark extensions
-          pageContent.content = std::string{cmark_markdown_to_html(
-              mdContent.c_str(), mdContent.size(), cmark_options)};
-        }
-      });
-}
 
 void clearDirectory(std::filesystem::path directory) {
   if (std::filesystem::is_directory(directory)) {
@@ -204,6 +159,7 @@ void outputContent(entt::registry &registry) {
   const std::filesystem::path pagesPath{"pages"};
 
   const auto systemEntity = registry.view<SystemConfigComponent>().front();
+
   const std::filesystem::path publicDirectory =
       registry.get<SystemConfigComponent>(systemEntity).publicDirectory;
 
@@ -260,6 +216,7 @@ void outputContent(entt::registry &registry) {
 
   // NOTE I wonder if it's better just to ignore files in public directory that
   // doesn't have extension instead of just copying "raw files"
+  // IDEA 1: Don't remove rawFiles(see clearDirectory function)
   rawFileView.each([&pagesPath, &publicDirectory](const auto &originPath) {
     auto destinationPath = std::filesystem::path(
         publicDirectory.string() +
@@ -316,8 +273,6 @@ void setSystem(entt::registry &registry) {
 int main(int argc, char *argv[], char *envp[]) try {
   using namespace cppaper;
 
-  std::cout << "[DEPRECATION] directory.pages is deprecated in favor of getPagesFrom() template function and will be removed in future versions" << std::endl;
-
   entt::registry registry;
 
   setSystem(registry);
@@ -341,34 +296,58 @@ int main(int argc, char *argv[], char *envp[]) try {
 
   // TODO Refactoring name of system functions to System Acronym and move to
   // properly directories "systems"
+
+  std::cout << "Getting site" << std::endl;
   getSite(registry);
 
+
+  std::cout << "Loading directories" << std::endl;;
   loadSiteDirectories(registry);
 
+  std::cout << "Reading files" << std::endl;
   loadSiteFiles(registry);
 
+
+  std::cout << "Processing extensions" << std::endl;
+  extensionSystem(registry);
+
+  std::cout << "Reading file contents" << std::endl;
+  readFilesContent(registry);
+
+
+  // TODO ignoreSystem: read config "output=false" key, and then remove from the registry
+  std::cout << "Reading configuration" << std::endl;
   configSystem(registry);
 
-  // TODO ignoreSystem: read config "ignore" key, and then remove from the registry
+  std::cout << "Indexing tags" << std::endl;
+  createTagIndex(registry);
 
+  std::cout << "Parsing relative path" << std::endl;
   relativePathSystem(registry);
 
+  std::cout << "Mounting directories map" << std::endl;
   directoriesMapSystem(registry);
 
+  std::cout << "Parsing JSON Files" << std::endl;
   jsonSystem(registry);
 
+  std::cout << "Running Indexing System" << std::endl;
   indexSystem(registry);
 
+  std::cout << "Title System" << std::endl;
   titleSystem(registry);
 
-  // TODO make a site map and add it to template config(only for
-  // GeneratedContentComponent)
+  std::cout << "Templating content" << std::endl;
+  templateFileContent(registry);
 
-  generateContent(registry);
+  std::cout << "Generating Content" << std::endl;
+  markdownSystem(registry);
 
+  std::cout << "Mounting templates" << std::endl;
   templateSystem(registry);
 
   // TODO markdown output html on output content when there is no template
+  std::cout << "Writing content" << std::endl;
   outputContent(registry);
 
   std::cout << "Done!" << std::endl;

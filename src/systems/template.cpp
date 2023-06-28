@@ -1,5 +1,6 @@
 #include "systems/template.hpp"
 
+#include "components/FileContentComponent.hpp"
 #include "inja/inja.hpp"
 
 #include "components/ChildFileComponent.hpp"
@@ -17,22 +18,28 @@
 #include "components/SystemConfigComponent.hpp"
 #include "components/TitleComponent.hpp"
 #include "template/functions/getConfigFrom.hpp"
+#include "template/functions/getPagesByTag.hpp"
 #include "template/functions/getPagesFrom.hpp"
+#include "template/functions/getJsonFrom.hpp"
+
+//TODO create a function to process generated content as inja templates
 
 namespace cppaper {
 
 inja::Template getTemplate(entt::registry &registry, const entt::entity entity,
-                           inja::Environment &env) {
+                           inja::Environment &env, bool isContent) {
+
   if (auto indexFile = registry.try_get<IndexFileComponent>(entity); indexFile) {
     return env.parse_template("./templates/" + indexFile->indexFilePath.string());
   }
 
-  if (registry.any_of<HTMLComponent>(entity)) {
+  if (isContent || registry.any_of<HTMLComponent>(entity)) {
     std::string templatePath =
         registry.get<OriginPathComponent>(entity).path.string();
 
     return env.parse_template(templatePath);
   }
+
   if (auto config = registry.try_get<ConfigComponent>(entity);
       config && config->map.contains("template")) {
     return env.parse_template("templates/" + config->map["template"]);
@@ -48,54 +55,29 @@ void setDefaultEnvironmentVariables(inja::json &data) {
   data["site"]["template_dir"] = std::filesystem::path("./templates/").string();
 }
 
-// TODO make this a callback(and add filter to files that user don't want to see(regex? maybe))
-void loadDirectoryPages(entt::entity directoryEntity, entt::registry &registry,
-                        inja::json &data) {
-  auto dirChildren = registry.get<ChildFileComponent>(directoryEntity);
-
-  data["directory"]["pages"] = {};
-
-  for (const auto fileEntity : dirChildren.children) {
-    auto &originPath = registry.get<OriginPathComponent>(fileEntity);
-
-    auto relativePath = std::filesystem::path(
-        std::filesystem::relative(originPath.path,
-                                  std::filesystem::path("pages"))
-            .string());
-
-    relativePath.replace_extension(".html"); // TODO this logics seems strange
-
-    data["directory"]["pages"] +=
-        {{"title", registry.get<TitleComponent>(fileEntity).title},
-         {"path", relativePath.string()},
-         {"id", fileEntity}};
-  }
-}
-
 static inja::Environment env;
 
 inline void generateContent(entt::registry &registry, const entt::entity entity,
                             const ParentDirectoryComponent &parentDirectory,
                             const ParentSite &parentSite,
                             const ConfigComponent &config,
-                            const TitleComponent &title) {
+                            const TitleComponent &title,
+                            const bool isContent = false
+                            ) {
 
     if(registry.any_of<RawFileComponent>(entity)) {
     std::cout << "Ignoring raw file" << std::endl; //TODO remove
       return; //TODO Ignore rawFile
     }
 
-    inja::Template templ = getTemplate(registry, entity, env);
+    inja::Template templ = getTemplate(registry, entity, env, isContent);
 
     inja::json data;
 
     setDefaultEnvironmentVariables(data);
 
-    loadDirectoryPages(parentDirectory.entity, registry, data);
-
     if(auto jsonComponent = registry.try_get<JSONComponent>(entity)) {
-      std::cout << "loading json" << std::endl;
-      data["json"] = jsonComponent->data;
+      data["page"]["json"] = jsonComponent->data;
     }
 
     for (const auto &[config, value] : config.map) {
@@ -119,25 +101,33 @@ inline void generateContent(entt::registry &registry, const entt::entity entity,
 
     data["page"]["title"] = title.title;
 
-    registry.emplace<GeneratedContentComponent>(entity,
-                                                env.render(templ, data));
+    if(isContent) {
+      if (auto fileContent = registry.try_get<FileContentComponent>(entity);
+          fileContent) {
+          fileContent->content = env.render(templ, data);
+      }
+    } else {
+      registry.emplace<GeneratedContentComponent>(entity,
+                                                  env.render(templ, data));
+                                                  
+    }
 }
 
 inline void registerCallbacks(entt::registry &registry, inja::Environment &env) {
   getPagesFrom(registry, env);
   getConfigFrom(registry, env);
+  getJsonFrom(registry, env);
+  getPagesByTagT(registry, env);
 }
 
 void templateSystem(entt::registry &registry) {
-  std::cout << "[INFO] Template System" << std::endl;
 
-  registerCallbacks(registry, env);
+  registerCallbacks(registry, env); //MOVe this to other function like "initTemplateSystem"
 
   auto view = registry.view<const FileComponent, const ParentDirectoryComponent,
                             const ParentSite, const ConfigComponent,
                             const TitleComponent>();
 
-  //FIXME IndexFileComponent are not being included in this view
   view.each([&registry](const auto entity, const auto &parentDirectory,
                         const auto &parentSite, const auto &config,
                         const auto &title) {
@@ -145,19 +135,21 @@ void templateSystem(entt::registry &registry) {
                     title);
   });
 
-  //auto indexFileView =
-  //    registry.view<const IndexFileComponent, const ParentDirectoryComponent,
-  //                  const ParentSite, const ConfigComponent,
-  //                  const TitleComponent>();
+}
 
-  //indexFileView.each([&registry](const auto entity, const auto &indexFile,
-  //                               const auto &parentDirectory,
-  //                               const auto &parentSite, const auto &config,
-  //                               const auto &title) {
-  //  generateContent(registry, entity, parentDirectory, parentSite, config,
-  //                  title);
-  //});
+void templateFileContent(entt::registry &registry) {
+  
+  auto view = registry.view<const FileComponent, const ParentDirectoryComponent,
+                            const ParentSite, const ConfigComponent,
+                            const TitleComponent, const FileContentComponent>();
+  //TODO Add a flag to FileContentComponent
 
-  // TODO separate entities that don't have templates and those who have.
+  view.each([&registry](const auto entity, const auto &parentDirectory,
+                        const auto &parentSite, const auto &config,
+                        const auto &title, const auto& fileContent) {
+    generateContent(registry, entity, parentDirectory, parentSite, config,
+                    title, true);
+  });
+
 }
 } // namespace cppaper
