@@ -27,18 +27,19 @@
 namespace cppaper {
 
 inja::Template getTemplate(entt::registry &registry, const entt::entity entity,
-                           inja::Environment &env) {
+                           inja::Environment &env, bool isContent) {
 
   if (auto indexFile = registry.try_get<IndexFileComponent>(entity); indexFile) {
     return env.parse_template("./templates/" + indexFile->indexFilePath.string());
   }
 
-  if (registry.any_of<HTMLComponent, FileContentComponent>(entity)) {
+  if (isContent || registry.any_of<HTMLComponent>(entity)) {
     std::string templatePath =
         registry.get<OriginPathComponent>(entity).path.string();
 
     return env.parse_template(templatePath);
   }
+
   if (auto config = registry.try_get<ConfigComponent>(entity);
       config && config->map.contains("template")) {
     return env.parse_template("templates/" + config->map["template"]);
@@ -69,7 +70,7 @@ inline void generateContent(entt::registry &registry, const entt::entity entity,
       return; //TODO Ignore rawFile
     }
 
-    inja::Template templ = getTemplate(registry, entity, env);
+    inja::Template templ = getTemplate(registry, entity, env, isContent);
 
     inja::json data;
 
@@ -137,17 +138,18 @@ void templateSystem(entt::registry &registry) {
 }
 
 void templateFileContent(entt::registry &registry) {
-  //
-  //auto view = registry.view<const FileComponent, const ParentDirectoryComponent,
-  //                          const ParentSite, const ConfigComponent,
-  //                          const TitleComponent>();
+  
+  auto view = registry.view<const FileComponent, const ParentDirectoryComponent,
+                            const ParentSite, const ConfigComponent,
+                            const TitleComponent, const FileContentComponent>();
+  //TODO Add a flag to FileContentComponent
 
-  //view.each([&registry](const auto entity, const auto &parentDirectory,
-  //                      const auto &parentSite, const auto &config,
-  //                      const auto &title) {
-  //  generateContent(registry, entity, parentDirectory, parentSite, config,
-  //                  title);
-  //});
+  view.each([&registry](const auto entity, const auto &parentDirectory,
+                        const auto &parentSite, const auto &config,
+                        const auto &title, const auto& fileContent) {
+    generateContent(registry, entity, parentDirectory, parentSite, config,
+                    title, true);
+  });
 
 }
 } // namespace cppaper

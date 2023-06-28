@@ -2,7 +2,11 @@
 
 Testing cmark parsers
 
-<h1>Testing unsafe HTML</h1>
+# Testing unsafe HTML 
+
+{# secret #}
+
+~~strikethrough~~
 
 | foo | bar |
 | --- | --- |
