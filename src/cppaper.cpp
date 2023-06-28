@@ -28,6 +28,7 @@
 
 #include "systems/config.hpp"
 #include "systems/directoriesMap.hpp"
+#include "systems/fileContent.hpp"
 #include "systems/index.hpp"
 #include "systems/json.hpp"
 #include "systems/markdown.hpp"
@@ -36,6 +37,7 @@
 #include "systems/title.hpp"
 #include "systems/extension.hpp"
 #include "systems/tag.hpp"
+#include "systems/fileContent.hpp"
 
 #include "entt/entt.hpp"
 
@@ -305,10 +307,13 @@ int main(int argc, char *argv[], char *envp[]) try {
   std::cout << "Reading files" << std::endl;
   loadSiteFiles(registry);
 
+
   std::cout << "Processing extensions" << std::endl;
   extensionSystem(registry);
 
-  //extensionSystem(registry);
+  std::cout << "Reading file contents" << std::endl;
+  readFilesContent(registry);
+
 
   // TODO ignoreSystem: read config "output=false" key, and then remove from the registry
   std::cout << "Reading configuration" << std::endl;
@@ -319,7 +324,6 @@ int main(int argc, char *argv[], char *envp[]) try {
 
   std::cout << "Parsing relative path" << std::endl;
   relativePathSystem(registry);
-
 
   std::cout << "Mounting directories map" << std::endl;
   directoriesMapSystem(registry);
@@ -334,6 +338,9 @@ int main(int argc, char *argv[], char *envp[]) try {
   titleSystem(registry);
 
   /* TODO make a site map and add it to template config(only for output content) */
+
+  std::cout << "Templating content" << std::endl;
+  templateFileContent(registry);
 
   std::cout << "Generating Content" << std::endl;
   markdownSystem(registry);

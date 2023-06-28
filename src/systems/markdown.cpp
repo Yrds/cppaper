@@ -4,8 +4,11 @@
 #include <sstream>
 #include <fstream>
 
+#include <iostream>
+
 #include "cmark-gfm.h"
 #include "cmark-gfm-core-extensions.h"
+#include "components/FileContentComponent.hpp"
 #include "components/PathComponent.hpp"
 #include "components/MarkdownComponent.hpp"
 #include "components/FileComponent.hpp"
@@ -38,41 +41,37 @@ void markdownSystem(entt::registry &registry) {
 
   const auto markdownView =
       registry.view<const OriginPathComponent, const MarkdownComponent,
-                    const FileComponent, const ConfigComponent>();
+                    const FileComponent, const ConfigComponent,
+                    const FileContentComponent>();
 
-  markdownView.each(
-      [&registry](const auto entity, const auto &originPath, auto &config) {
-        std::ifstream mdFile(originPath.path, std::ios::binary);
+  markdownView.each([&registry](const auto entity, const auto &originPath,
+                                auto &config, auto &fileContentComponent) {
+    std::ifstream mdFile(originPath.path, std::ios::binary);
 
-        if (mdFile.is_open()) {
-          std::stringstream ss;
+    if (mdFile.is_open()) {
+      int cmark_options = CMARK_OPT_DEFAULT;
 
-          ss << mdFile.rdbuf();
+      if (auto markdownUnsafe = config.map.find("markdown_unsafe");
+          markdownUnsafe != config.map.end() &&
+          markdownUnsafe->second == "true") {
+        cmark_options |= CMARK_OPT_UNSAFE;
+      }
 
-          auto mdContent = ss.str();
+      cmark_parser *parser = cmark_parser_new(cmark_options);
 
-          int cmark_options = CMARK_OPT_DEFAULT;
+      attachExtensions(parser);
 
-          if (auto markdownUnsafe = config.map.find("markdown_unsafe");
-              markdownUnsafe != config.map.end() &&
-              markdownUnsafe->second == "true") {
-            cmark_options |= CMARK_OPT_UNSAFE;
-          }
+      cmark_parser_feed(parser, fileContentComponent.content.c_str(),
+                        fileContentComponent.content.size());
 
-          cmark_parser *parser = cmark_parser_new(cmark_options);
+      cmark_node *doc = cmark_parser_finish(parser);
 
-          attachExtensions(parser);
+      registry.emplace<PageContentComponent>(
+          entity, std::string{cmark_render_html(doc, cmark_options, NULL)});
 
-          cmark_parser_feed(parser, mdContent.c_str(), mdContent.size());
-
-          cmark_node *doc = cmark_parser_finish(parser);
-
-          registry.emplace<PageContentComponent>(
-              entity, std::string{cmark_render_html(doc, cmark_options, NULL)});
-
-          cmark_node_free(doc);
-          cmark_parser_free(parser);
-        }
-      });
+      cmark_node_free(doc);
+      cmark_parser_free(parser);
+    }
+  });
 }
 } // namespace cppaper

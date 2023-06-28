@@ -15,6 +15,7 @@ src = files(
   'src/systems/extension.cpp',
   'src/systems/markdown.cpp',
   'src/systems/tag.cpp',
+  'src/systems/fileContent.cpp',
   'src/cppaper.cpp',
 
   #Template functions

@@ -1,5 +1,6 @@
 #include "systems/template.hpp"
 
+#include "components/FileContentComponent.hpp"
 #include "inja/inja.hpp"
 
 #include "components/ChildFileComponent.hpp"
@@ -27,11 +28,12 @@ namespace cppaper {
 
 inja::Template getTemplate(entt::registry &registry, const entt::entity entity,
                            inja::Environment &env) {
+
   if (auto indexFile = registry.try_get<IndexFileComponent>(entity); indexFile) {
     return env.parse_template("./templates/" + indexFile->indexFilePath.string());
   }
 
-  if (registry.any_of<HTMLComponent>(entity)) {
+  if (registry.any_of<HTMLComponent, FileContentComponent>(entity)) {
     std::string templatePath =
         registry.get<OriginPathComponent>(entity).path.string();
 
@@ -58,7 +60,9 @@ inline void generateContent(entt::registry &registry, const entt::entity entity,
                             const ParentDirectoryComponent &parentDirectory,
                             const ParentSite &parentSite,
                             const ConfigComponent &config,
-                            const TitleComponent &title) {
+                            const TitleComponent &title,
+                            const bool isContent = false
+                            ) {
 
     if(registry.any_of<RawFileComponent>(entity)) {
     std::cout << "Ignoring raw file" << std::endl; //TODO remove
@@ -96,8 +100,16 @@ inline void generateContent(entt::registry &registry, const entt::entity entity,
 
     data["page"]["title"] = title.title;
 
-    registry.emplace<GeneratedContentComponent>(entity,
-                                                env.render(templ, data));
+    if(isContent) {
+      if (auto fileContent = registry.try_get<FileContentComponent>(entity);
+          fileContent) {
+          fileContent->content = env.render(templ, data);
+      }
+    } else {
+      registry.emplace<GeneratedContentComponent>(entity,
+                                                  env.render(templ, data));
+                                                  
+    }
 }
 
 inline void registerCallbacks(entt::registry &registry, inja::Environment &env) {
@@ -108,9 +120,8 @@ inline void registerCallbacks(entt::registry &registry, inja::Environment &env) 
 }
 
 void templateSystem(entt::registry &registry) {
-  std::cout << "[INFO] Template System" << std::endl;
 
-  registerCallbacks(registry, env);
+  registerCallbacks(registry, env); //MOVe this to other function like "initTemplateSystem"
 
   auto view = registry.view<const FileComponent, const ParentDirectoryComponent,
                             const ParentSite, const ConfigComponent,
@@ -122,6 +133,21 @@ void templateSystem(entt::registry &registry) {
     generateContent(registry, entity, parentDirectory, parentSite, config,
                     title);
   });
+
+}
+
+void templateFileContent(entt::registry &registry) {
+  //
+  //auto view = registry.view<const FileComponent, const ParentDirectoryComponent,
+  //                          const ParentSite, const ConfigComponent,
+  //                          const TitleComponent>();
+
+  //view.each([&registry](const auto entity, const auto &parentDirectory,
+  //                      const auto &parentSite, const auto &config,
+  //                      const auto &title) {
+  //  generateContent(registry, entity, parentDirectory, parentSite, config,
+  //                  title);
+  //});
 
 }
 } // namespace cppaper
