@@ -337,8 +337,6 @@ int main(int argc, char *argv[], char *envp[]) try {
   std::cout << "Title System" << std::endl;
   titleSystem(registry);
 
-  /* TODO make a site map and add it to template config(only for output content) */
-
   std::cout << "Templating content" << std::endl;
   templateFileContent(registry);
 
