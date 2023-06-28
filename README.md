@@ -66,6 +66,7 @@ Here's an example of directory structure with configs to Site, Directory and Fil
 |markdown_unsafe|true or false|Allow use of custom htmls in markdown|
 |template|file (Ex. template/cppaper-default/default.html)|Specify a template to be used with a markdown or other content file|
 |index|file|Specify a file to be used as index.html from templates directory|
+|tags|comma separated strings|File tags that can by used to be queried on templates|
 
 ### Special directories
 
@@ -110,8 +111,6 @@ Generally you can use variables like this way:
 |Variable|Description|
 |--------|-----------|
 |config|Access all configs and its values|
-|[DEPRECATED] pages|An array with all pages from directory|
-
 
 #### Page
 
@@ -156,6 +155,38 @@ Example:
 ```
   {% for page in getPagesFrom(".") %}
     {% set config = getConfigFrom(page.id) %}
+    {{ config }}
+  {% endfor %}
+```
+
+## getJsonFrom(id: number)
+
+return JSON object to be accessed on template
+
+If file is not a JSON file, `null` is returned instead.
+
+Example:
+```
+  {% for page in getPagesFrom(".") %}
+    {% set json = getJsonFrom(page.id) %}
+    {{ json.some_attribute }}
+  {% endfor %}
+```
+
+
+## getPagesByTag(tag: string)
+
+return an ID array containing all pages marked with `tag`.
+
+If no page contain this tag, an empty array is returned
+
+NOTE: Different from `getPagesFrom` this only returns ID from pages objects(no titles or other attributes).
+
+Example:
+
+```
+  {% for pageID in getPagesByTag("article") %} 
+    {% set config = getConfigFrom(pageID) %}
     {{ config }}
   {% endfor %}
 ```
