@@ -123,9 +123,6 @@ inline void registerCallbacks(entt::registry &registry, inja::Environment &env) 
 
 void templateSystem(entt::registry &registry) {
 
-  registerCallbacks(registry, env);
-
-  env.set_line_statement("%%");
   //Move this to other function like "initTemplateSystem"
 
   auto view = registry.view<const FileComponent, const ParentDirectoryComponent,
@@ -143,6 +140,10 @@ void templateSystem(entt::registry &registry) {
 
 void templateFileContent(entt::registry &registry) {
   
+  registerCallbacks(registry, env);
+
+  env.set_line_statement("%%");
+
   auto view = registry.view<const FileComponent, const ParentDirectoryComponent,
                             const ParentSite, const ConfigComponent,
                             const TitleComponent, const FileContentComponent>();

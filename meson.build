@@ -1,4 +1,4 @@
-project('cppaper', 'cpp', version: '0.17.2', default_options: ['cpp_std=c++20', 'default_library=static'])
+project('cppaper', 'cpp', version: '0.17.3', default_options: ['cpp_std=c++20', 'default_library=static'])
 
 src = files(
   #Utils
