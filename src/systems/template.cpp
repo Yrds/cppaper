@@ -1,8 +1,10 @@
 #include "systems/template.hpp"
 
-#include "components/FileContentComponent.hpp"
+#include <iostream>
+
 #include "inja/inja.hpp"
 
+#include "components/FileContentComponent.hpp"
 #include "components/ChildFileComponent.hpp"
 #include "components/Config.hpp"
 #include "components/FileComponent.hpp"
@@ -26,6 +28,7 @@
 
 namespace cppaper {
 
+//TODO transform this to a component like `TemplateComponent`
 inja::Template getTemplate(entt::registry &registry, const entt::entity entity,
                            inja::Environment &env, bool isContent) {
 
@@ -100,17 +103,15 @@ inline void generateContent(entt::registry &registry, const entt::entity entity,
     }
 
     data["page"]["title"] = title.title;
-
-    if(isContent) {
-      if (auto fileContent = registry.try_get<FileContentComponent>(entity);
-          fileContent) {
-          fileContent->content = env.render(templ, data);
+      if(isContent) {
+        if (auto fileContent = registry.try_get<FileContentComponent>(entity);
+            fileContent) {
+            fileContent->content = env.render(templ, data);
+        }
+      } else {
+        registry.emplace<GeneratedContentComponent>(entity,
+                                                    env.render(templ, data));
       }
-    } else {
-      registry.emplace<GeneratedContentComponent>(entity,
-                                                  env.render(templ, data));
-                                                  
-    }
 }
 
 inline void registerCallbacks(entt::registry &registry, inja::Environment &env) {
@@ -121,6 +122,8 @@ inline void registerCallbacks(entt::registry &registry, inja::Environment &env) 
 }
 
 void initTemplateEnvironment(entt::registry &registry) {
+  env.set_line_statement("%%");
+
   registerCallbacks(registry, env);
 }
 
@@ -140,7 +143,7 @@ void templateSystem(entt::registry &registry) {
 }
 
 void templateFileContent(entt::registry &registry) {
-  
+
   auto view = registry.view<const FileComponent, const ParentDirectoryComponent,
                             const ParentSite, const ConfigComponent,
                             const TitleComponent, const FileContentComponent>();
