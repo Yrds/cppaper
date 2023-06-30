@@ -337,6 +337,12 @@ int main(int argc, char *argv[], char *envp[]) try {
   std::cout << "Title System" << std::endl;
   titleSystem(registry);
 
+  //TODO implement shortcodes
+ 
+  initTemplateEnvironment(registry);
+
+  //TODO init Template env
+  //
   std::cout << "Templating content" << std::endl;
   templateFileContent(registry);
 

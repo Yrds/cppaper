@@ -6,6 +6,7 @@
 namespace cppaper {
   void templateSystem(entt::registry &registry);
   void templateFileContent(entt::registry &registry);
+  void initTemplateEnvironment(entt::registry &registry);
 }
 
 #endif

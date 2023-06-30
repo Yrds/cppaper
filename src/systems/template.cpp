@@ -120,9 +120,11 @@ inline void registerCallbacks(entt::registry &registry, inja::Environment &env) 
   getPagesByTagT(registry, env);
 }
 
-void templateSystem(entt::registry &registry) {
+void initTemplateEnvironment(entt::registry &registry) {
+  registerCallbacks(registry, env);
+}
 
-  registerCallbacks(registry, env); //MOVe this to other function like "initTemplateSystem"
+void templateSystem(entt::registry &registry) {
 
   auto view = registry.view<const FileComponent, const ParentDirectoryComponent,
                             const ParentSite, const ConfigComponent,
