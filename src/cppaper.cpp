@@ -25,6 +25,8 @@
 #include "components/RawFileComponent.hpp"
 #include "components/Site.hpp"
 #include "components/SystemConfigComponent.hpp"
+#include "components/SitemapComponent.hpp"
+#include "components/RelativePath.hpp"
 
 #include "systems/config.hpp"
 #include "systems/directoriesMap.hpp"
@@ -33,11 +35,13 @@
 #include "systems/json.hpp"
 #include "systems/markdown.hpp"
 #include "systems/relativePath.hpp"
+#include "systems/sitemap.hpp"
 #include "systems/template.hpp"
 #include "systems/title.hpp"
 #include "systems/extension.hpp"
 #include "systems/tag.hpp"
 #include "systems/fileContent.hpp"
+#include "systems/sitemap.hpp"
 
 #include "entt/entt.hpp"
 
@@ -186,8 +190,31 @@ void outputContent(entt::registry &registry) {
       registry.view<const ParentDirectoryComponent, const IndexFileComponent,
                     const GeneratedContentComponent>();
 
+  const auto sitemapFileView =
+      registry.view<const GeneratedContentComponent, const RelativePathComponent, const SitemapComponent>();
+
+  sitemapFileView.each([&publicDirectory](const auto &generatedContentComponent, const auto &relativePathComponent){
+    auto destinationPath = publicDirectory;
+    destinationPath += relativePathComponent.path;
+
+    std::ofstream outputSitemapFile(destinationPath);
+
+    if(outputSitemapFile.is_open()) {
+      std::stringstream ss;
+
+      ss << generatedContentComponent.content;
+
+      outputSitemapFile << ss.rdbuf();
+    } else {
+      // throw "Failed to write file " + destinationPath.string();
+      throw std::invalid_argument("Failed to write file: " +
+                                  destinationPath.string());
+    }
+  });
+
   const auto size = contentView.size_hint() + rawFileView.size_hint() +
-                    indexFileView.size_hint();
+                    indexFileView.size_hint() + sitemapFileView.size_hint();
+
 
   std::cout << "writing " << size << " files" << std::endl;
 
@@ -347,6 +374,9 @@ int main(int argc, char *argv[], char *envp[]) try {
 
   std::cout << "Mounting templates" << std::endl;
   templateSystem(registry);
+
+  std::cout << "Generating sitemap" << std::endl;
+  sitemapSystem(registry);
 
   // TODO markdown output html on output content when there is no template
   std::cout << "Writing content" << std::endl;

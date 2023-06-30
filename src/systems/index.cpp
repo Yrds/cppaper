@@ -9,6 +9,7 @@
 #include "components/IndexFileComponent.hpp"
 #include "components/ParentDirectory.hpp"
 #include "components/ParentSite.hpp"
+#include "components/RelativePath.hpp"
 
 namespace cppaper {
 void indexSystem(entt::registry &registry) {
@@ -32,6 +33,8 @@ void indexSystem(entt::registry &registry) {
         throw std::invalid_argument("Index file doesn't exists: " + indexTemplateFile.string());
       }
 
+
+      //TODO emplace relative Path
       registry.emplace<ConfigComponent>(indexFileEntity, config);
     }
   });
