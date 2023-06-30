@@ -292,10 +292,6 @@ int main(int argc, char *argv[], char *envp[]) try {
         systemConfig.publicDirectory = std::filesystem::path{value + "/"};
       },
       argc, argv);
-  // TODO this is only temporary, I will make more robust
-
-  // TODO Refactoring name of system functions to System Acronym and move to
-  // properly directories "systems"
 
   std::cout << "Getting site" << std::endl;
   getSite(registry);

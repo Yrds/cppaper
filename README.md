@@ -62,7 +62,7 @@ Here's an example of directory structure with configs to Site, Directory and Fil
 ```
 
 |Config|Type|Description|
-|markdown_unsafe|true or false|Allow use of custom htmls in markdown|
+|markdown_unsafe|true(default) or false|Allow use of custom htmls in markdown|
 |template|file (Ex. template/cppaper-default/default.html)|Specify a template to be used with a markdown or other content file|
 |index|file|Specify a file to be used as index.html from templates directory|
 

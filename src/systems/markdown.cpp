@@ -53,8 +53,8 @@ void markdownSystem(entt::registry &registry) {
 
       if (auto markdownUnsafe = config.map.find("markdown_unsafe");
           markdownUnsafe != config.map.end() &&
-          markdownUnsafe->second == "false") {
-        cmark_options ^= CMARK_OPT_UNSAFE;
+          markdownUnsafe->second != "false") {
+        cmark_options |= CMARK_OPT_UNSAFE;
       }
 
       cmark_parser *parser = cmark_parser_new(cmark_options);
