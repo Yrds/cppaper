@@ -1,6 +1,7 @@
 #include "systems/sitemap.hpp"
 
 #include "components/Config.hpp"
+#include "components/DirectoryComponent.hpp"
 #include "components/GeneratedContentComponent.hpp"
 #include "components/RelativePath.hpp"
 #include "components/FileComponent.hpp"
@@ -45,11 +46,12 @@ void sitemapSystem(entt::registry &registry) {
   const auto siteDomain = siteConfig.map.at("domain");
 
   const auto contentView =
-      registry.view<const RelativePathComponent, const FileComponent>();
+      registry.view<const RelativePathComponent>(entt::exclude<DirectoryComponent, SiteComponent>);
 
   // NOTE This need site global configuration to work
   contentView.each([&sitemapString, &siteHref,
                     &siteDomain](const auto &relativePathComponent) {
+                   std::cout << "generating sitemap.xml to " << relativePathComponent.path << std::endl;
     sitemapString += "<url>";
     sitemapString += "<loc>" + std::string("https://") + siteDomain + siteHref + relativePathComponent.path.string() + +"</loc>";
     sitemapString += "</url>";

@@ -365,6 +365,7 @@ int main(int argc, char *argv[], char *envp[]) try {
 
   //TODO implement shortcodes
  
+  std::cout << "Initialiazing template environment" << std::endl;
   initTemplateEnvironment(registry);
 
   std::cout << "Templating content" << std::endl;
