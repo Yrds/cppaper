@@ -7,6 +7,8 @@
 #include "components/RawFileComponent.hpp"
 #include "components/JSONComponent.hpp"
 #include "components/HtmlComponent.hpp"
+#include "components/RelativePath.hpp"
+#include "components/GeneratedContentComponent.hpp"
 
 namespace cppaper {
 void extensionSystem(entt::registry &registry) {
@@ -14,7 +16,7 @@ void extensionSystem(entt::registry &registry) {
   auto filesView =
       registry.view<const OriginPathComponent, const FileComponent>();
 
-  filesView.each([&registry](const auto fileEntity, const auto pathComponent) {
+  filesView.each([&registry](const auto fileEntity, const auto &pathComponent) {
     auto const pathExtension = pathComponent.path.extension().string();
 
     // TODO move this to other system or function inside the same system
@@ -30,4 +32,16 @@ void extensionSystem(entt::registry &registry) {
     }
   });
 }
+
+void setFilesRelativePathExtension(entt::registry &registry) {
+  auto generatedContentView = registry.view<RelativePathComponent, const FileComponent>(entt::exclude<RawFileComponent>);
+
+  //NOTE Should this have a OutputExtension to future configurations and customizability(is this word exists?)
+  
+  generatedContentView.each([](auto &relativePathComponent){
+    std::cout << "Converting: " << relativePathComponent.path << " to .html" << std::endl; //TODO REMOVE
+    relativePathComponent.path.replace_extension(".html");
+  });
+}
+
 } // namespace cppaper

@@ -348,6 +348,9 @@ int main(int argc, char *argv[], char *envp[]) try {
   std::cout << "Parsing relative path" << std::endl;
   relativePathSystem(registry);
 
+  std::cout << "Updating relative Paths Output extensions" << std::endl;
+  setFilesRelativePathExtension(registry);
+
   std::cout << "Mounting directories map" << std::endl;
   directoriesMapSystem(registry);
 
