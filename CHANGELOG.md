@@ -7,15 +7,21 @@
 
 ## [0.17.4]
 
-## Added
+### Added
 
 - Now a `sitemap.xml` is generated mapping all files
 
-## Changed
+### Changed
 
 - `markdown_unsafe` config is opt in
 
-## Fixed - [Code Cleanup Week](https://github.com/Yrds/cppaper/issues/8)
+### Fixed - [Code Cleanup Week](https://github.com/Yrds/cppaper/issues/8)
 - Create a special function to init function system (fixed in 33ae442)
 - Opt in markdown_safe config to true. (fixed in 6936812)
 - Adjust RelativePathComponent which is not showing json and md files path to .html destination. (fixed in bdf910d)
+
+## [0.17.5] Hotfix
+
+### Fixed
+
+- Fixed Index pages not being included in `sitemap.xml` (fixed in 670e4deb)
