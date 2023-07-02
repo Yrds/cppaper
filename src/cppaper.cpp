@@ -364,8 +364,6 @@ int main(int argc, char *argv[], char *envp[]) try {
  
   initTemplateEnvironment(registry);
 
-  //TODO init Template env
-  //
   std::cout << "Templating content" << std::endl;
   templateFileContent(registry);
 
@@ -386,9 +384,6 @@ int main(int argc, char *argv[], char *envp[]) try {
 
   return 0;
 } catch (const std::exception &ex) {
-  std::cerr << ex.what() << std::endl;
+  std::cerr << "[ERROR] " << ex.what() << std::endl;
   return 1;
-} catch (...) {
-  std::cerr << "An unknown error ocurred" << std::endl;
-  return 255;
-}
+} 
