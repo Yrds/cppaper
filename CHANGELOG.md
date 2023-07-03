@@ -25,3 +25,9 @@
 ### Fixed
 
 - Fixed Index pages not being included in `sitemap.xml` (fixed in 670e4deb)
+
+## [0.17.6] Hotfix
+
+### Fixed
+
+- Fixed Index relative Path (fixed in 86b8ae31)
