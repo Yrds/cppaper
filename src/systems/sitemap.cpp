@@ -46,7 +46,7 @@ void sitemapSystem(entt::registry &registry) {
   const auto siteDomain = siteConfig.map.at("domain");
 
   const auto contentView =
-      registry.view<const RelativePathComponent>(entt::exclude<DirectoryComponent, SiteComponent>);
+      registry.view<const RelativePathComponent, const FileComponent>();
 
   // NOTE This need site global configuration to work
   contentView.each([&sitemapString, &siteHref,
