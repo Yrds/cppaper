@@ -368,6 +368,8 @@ int main(int argc, char *argv[], char *envp[]) try {
   std::cout << "Initialiazing template environment" << std::endl;
   initTemplateEnvironment(registry);
 
+  std::cout << "Scanning for shortcodes" << std::endl;
+
   std::cout << "Templating content" << std::endl;
   templateFileContent(registry);
 
