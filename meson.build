@@ -16,6 +16,7 @@ src = files(
   'src/systems/tag.cpp',
   'src/systems/fileContent.cpp',
   'src/systems/sitemap.cpp',
+  'src/systems/output.cpp',
   'src/cppaper.cpp',
 
   #Template functions

@@ -8,6 +8,7 @@
 #include "components/SitemapComponent.hpp"
 #include "components/Config.hpp"
 #include "components/Site.hpp"
+#include "components/NoOutput.hpp"
 
 #include <stdexcept>
 #include <string>
@@ -46,7 +47,7 @@ void sitemapSystem(entt::registry &registry) {
   const auto siteDomain = siteConfig.map.at("domain");
 
   const auto contentView =
-      registry.view<const RelativePathComponent, const FileComponent>();
+      registry.view<const RelativePathComponent, const FileComponent>(entt::exclude<NoOutputComponent>);
 
   // NOTE This need site global configuration to work
   contentView.each([&sitemapString, &siteHref,

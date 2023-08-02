@@ -9,6 +9,7 @@
 
 #include "Site.hpp"
 
+#include "components/NoOutput.hpp"
 #include "components/ParentDirectory.hpp"
 #include "components/ChildFileComponent.hpp"
 #include "components/Config.hpp"
@@ -34,6 +35,7 @@
 #include "systems/index.hpp"
 #include "systems/json.hpp"
 #include "systems/markdown.hpp"
+#include "systems/output.hpp"
 #include "systems/relativePath.hpp"
 #include "systems/sitemap.hpp"
 #include "systems/template.hpp"
@@ -181,14 +183,14 @@ void outputContent(entt::registry &registry) {
 
   const auto contentView =
       registry.view<const GeneratedContentComponent, const OriginPathComponent,
-                    FileComponent>();
+                    FileComponent>(entt::exclude<NoOutputComponent>);
 
   const auto rawFileView =
-      registry.view<const OriginPathComponent, const RawFileComponent>();
+      registry.view<const OriginPathComponent, const RawFileComponent>(entt::exclude<NoOutputComponent>);
 
   const auto indexFileView =
       registry.view<const ParentDirectoryComponent, const IndexFileComponent,
-                    const GeneratedContentComponent>();
+                    const GeneratedContentComponent>(entt::exclude<NoOutputComponent>);
 
   const auto sitemapFileView =
       registry.view<const GeneratedContentComponent, const RelativePathComponent, const SitemapComponent>();
@@ -216,7 +218,7 @@ void outputContent(entt::registry &registry) {
                     indexFileView.size_hint() + sitemapFileView.size_hint();
 
 
-  std::cout << "writing " << size << " files" << std::endl;
+  std::cout << "writing " << size << " files (excluded files are counting to that too)" << std::endl;
 
   contentView.each([&pagesPath, &publicDirectory](const auto &generatedContent,
                                                   const auto &originPath) {
@@ -341,6 +343,9 @@ int main(int argc, char *argv[], char *envp[]) try {
   // TODO ignoreSystem: read config "output=false" key, and then remove from the registry
   std::cout << "Reading configuration" << std::endl;
   configSystem(registry);
+
+  std::cout << "Finding 'no_output' files" << std::endl;
+  noOutputValidation(registry);
 
   std::cout << "Indexing tags" << std::endl;
   createTagIndex(registry);

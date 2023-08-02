@@ -4,6 +4,7 @@
 #include "components/PathComponent.hpp"
 #include "components/SystemConfigComponent.hpp"
 #include "components/TitleComponent.hpp"
+#include "components/NoOutput.hpp"
 
 namespace cppaper {
 void getPagesFrom(entt::registry &registry, inja::Environment& env) {
@@ -25,6 +26,10 @@ void getPagesFrom(entt::registry &registry, inja::Environment& env) {
       auto dirChildren = registry.get<ChildFileComponent>(directoryEntity);
 
       for (const auto fileEntity : dirChildren.children) {
+        if(registry.any_of<NoOutputComponent>(fileEntity)) {
+          continue;
+        }
+
         auto &originPath = registry.get<OriginPathComponent>(fileEntity);
 
         auto relativePath = std::filesystem::path(

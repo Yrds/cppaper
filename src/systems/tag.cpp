@@ -6,6 +6,8 @@
 
 
 #include "components/TitleComponent.hpp" //remove
+#include "components/NoOutput.hpp"
+
 #include "systems/tag.hpp"
 #include "string_utils.hpp"
 
@@ -13,7 +15,7 @@ namespace cppaper {
 
 //TODO make a getPagesByTag('string') to be accessed by template
 void createTagIndex(entt::registry &registry) {
-  auto configView = registry.view<const ConfigComponent>();
+  auto configView = registry.view<const ConfigComponent>(entt::exclude<NoOutputComponent>);
 
   configView.each([&registry](auto entity, const auto &config) {
 
