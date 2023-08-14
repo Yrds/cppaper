@@ -23,7 +23,8 @@ src = files(
   'src/template/functions/getPagesFrom.cpp',
   'src/template/functions/getConfigFrom.cpp',
   'src/template/functions/getJsonFrom.cpp',
-  'src/template/functions/getPagesByTag.cpp'
+  'src/template/functions/getPagesByTag.cpp',
+  'src/template/functions/getPathFrom.cpp'
   )
 
 inc = include_directories('src')

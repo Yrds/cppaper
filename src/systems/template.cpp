@@ -19,10 +19,13 @@
 #include "components/RawFileComponent.hpp"
 #include "components/SystemConfigComponent.hpp"
 #include "components/TitleComponent.hpp"
+
+//Template functions
 #include "template/functions/getConfigFrom.hpp"
 #include "template/functions/getPagesByTag.hpp"
 #include "template/functions/getPagesFrom.hpp"
 #include "template/functions/getJsonFrom.hpp"
+#include "template/functions/getPathFrom.hpp"
 
 //TODO create a function to process generated content as inja templates
 
@@ -121,6 +124,7 @@ inline void registerCallbacks(entt::registry &registry, inja::Environment &env) 
   getConfigFrom(registry, env);
   getJsonFrom(registry, env);
   getPagesByTagT(registry, env);
+  getPathFromT(registry, env);
 }
 
 void initTemplateEnvironment(entt::registry &registry) {

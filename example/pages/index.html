@@ -24,7 +24,7 @@
     <h2>Pages with the tag 'test'</h2>
     <ul>
       {% for page in getPagesByTag("test") %}
-        <li>{{getConfigFrom(page)}}</li>
+      <li>{{ getConfigFrom(page) }}: {{ getPathFrom(page) }}</li>
       {% endfor %}
       <li></li>
     </ul>
