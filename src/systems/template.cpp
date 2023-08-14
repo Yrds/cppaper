@@ -79,6 +79,8 @@ inline void generateContent(entt::registry &registry, const entt::entity entity,
 
     setDefaultEnvironmentVariables(data);
 
+    data["page"]["id"] = static_cast<int>(entity);
+
     if(auto jsonComponent = registry.try_get<JSONComponent>(entity)) {
       data["page"]["json"] = jsonComponent->data;
     }
