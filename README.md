@@ -207,7 +207,7 @@ Every script has it own state, so if you can have a variable to be updated durin
 
 ### Hooks
 
-Hooks are special functions called by `cppaper` on certain moment of the flow. For now there only one.
+Hooks are special functions called by `cppaper` on certain moment of the flow. For now there is only one.
 
 #### `before_output`
 
