@@ -5,7 +5,9 @@ A static blog/site generator made in modern c++.
 ## Features
 
   - Templates using [inja](https://github.com/pantor/inja)
-  - Pages using markdown(gfm version)
+  - Pages using markdown(gfm with all extensions enabled)
+  - Pages using json(nlohmann)
+  - Custom Lua scripts(sol2)
 
 ## Installing
 
@@ -22,6 +24,8 @@ Aur:
 
 - meson
 - Any compiler which supports c++20
+
+All libraries are downloaded automatically
 
 #### Instructions
 
@@ -92,6 +96,8 @@ Other extensions are tread as "raw" and are copied without any modification.
 ### Special variables
 
 Variables are a feature from `inja` template engine, and you can use all default `inja` functions and variables, but cppaper include some platform specific to help you build templates
+
+Note: The default one line statement `##` was changed to `%%` due to markdown template support to not conflict with markdown headings.
 
 Generally you can use variables like this way:
 
