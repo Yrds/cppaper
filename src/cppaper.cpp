@@ -371,6 +371,9 @@ int main(int argc, char *argv[], char *envp[]) try {
   std::cout << "Title System" << std::endl;
   titleSystem(registry);
 
+  std::cout << "[SCRIPT] Before Templating" << std::endl;
+  luaBeforeTemplate(registry);
+
   //TODO implement shortcodes
 
   std::cout << "Initialiazing template environment" << std::endl;
@@ -385,7 +388,7 @@ int main(int argc, char *argv[], char *envp[]) try {
   std::cout << "Mounting templates" << std::endl;
   templateSystem(registry);
 
-  std::cout << "Running scripts" << std::endl;
+  std::cout << "[SCRIPT] Before Output" << std::endl;
   luaBeforeOutput(registry);
 
   std::cout << "Generating sitemap" << std::endl;

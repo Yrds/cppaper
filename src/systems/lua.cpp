@@ -43,6 +43,14 @@ void initScriptSystem(entt::registry &registry) {
 
 }
 
+void luaBeforeTemplate(entt::registry &registry) {
+  const auto scriptsView = registry.view<ScriptComponent>();
+
+  for(auto it = scriptsView.rbegin(), last = scriptsView.rend(); it != last; ++it) {
+    scriptsView.get<ScriptComponent>(*it).lua.script("before_template()");
+  }
+}
+
 void luaBeforeOutput(entt::registry &registry) {
   const auto scriptsView = registry.view<ScriptComponent>();
 

@@ -107,7 +107,7 @@ Generally you can use variables like this way:
 </body>
 ```
 
-#### Site
+#### site
 
 |Variable|Description|
 |--------|-----------|
@@ -208,6 +208,11 @@ Every script has it own state, so if you can have a variable to be updated durin
 ### Hooks
 
 Hooks are special functions called by `cppaper` on certain moment of the flow. For now there is only one.
+
+#### `before_template`
+
+This hook run before cppaper generates content based on templates.
+In this hook you can manipulate json data and markdown html or other pages attributes to change template results.
 
 #### `before_output`
 
