@@ -34,6 +34,7 @@
 #include "systems/fileContent.hpp"
 #include "systems/index.hpp"
 #include "systems/json.hpp"
+#include "systems/lua.hpp"
 #include "systems/markdown.hpp"
 #include "systems/output.hpp"
 #include "systems/relativePath.hpp"
@@ -108,12 +109,11 @@ void loadSiteDirectories(entt::registry &registry) {
 }
 
 void loadSiteFiles(entt::registry &registry) {
-  auto directoriesView =
+  const auto directoriesView =
       registry.view<const OriginPathComponent, const DirectoryComponent,
                     ChildFileComponent>();
 
-  // NOTE Feature: Allow multiple sites and get ParentSite from dirEntity
-  auto siteEntity = registry.view<const SiteComponent>().front();
+  const auto siteEntity = registry.view<const SiteComponent>().front();
 
   directoriesView.each([&registry, &siteEntity](const auto dirEntity,
                                                 const auto &originPath,
@@ -332,6 +332,11 @@ int main(int argc, char *argv[], char *envp[]) try {
   std::cout << "Reading files" << std::endl;
   loadSiteFiles(registry);
 
+  std::cout << "Scanning script files" << std::endl;
+  scanScriptFiles(registry);
+
+  std::cout << "Initializing script system" << std::endl;
+  initScriptSystem(registry);
 
   std::cout << "Processing extensions" << std::endl;
   extensionSystem(registry);
@@ -339,8 +344,6 @@ int main(int argc, char *argv[], char *envp[]) try {
   std::cout << "Reading file contents" << std::endl;
   readFilesContent(registry);
 
-
-  // TODO ignoreSystem: read config "output=false" key, and then remove from the registry
   std::cout << "Reading configuration" << std::endl;
   configSystem(registry);
 
@@ -369,7 +372,7 @@ int main(int argc, char *argv[], char *envp[]) try {
   titleSystem(registry);
 
   //TODO implement shortcodes
- 
+
   std::cout << "Initialiazing template environment" << std::endl;
   initTemplateEnvironment(registry);
 
@@ -381,6 +384,9 @@ int main(int argc, char *argv[], char *envp[]) try {
 
   std::cout << "Mounting templates" << std::endl;
   templateSystem(registry);
+
+  std::cout << "Running scripts" << std::endl;
+  luaBeforeOutput(registry);
 
   std::cout << "Generating sitemap" << std::endl;
   sitemapSystem(registry);

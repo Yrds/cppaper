@@ -77,6 +77,7 @@ Here's an example of directory structure with configs to Site, Directory and Fil
 |templates|This is where cppaper will lookup for templates when you use `template` config|
 |public|This directory can be created when you run cppaper for the first time and have all generated content from `pages` + assets directory|
 |public/assets|cppaper delete every file in `public/*` except `public/assets/*`. Use this directory to put logos, big files, etc|
+|scripts|lua scripts directory see [scripting section for more details](#scripting)|
 
 ### Special page extensions
 
@@ -125,7 +126,7 @@ Generally you can use variables like this way:
 
 ### Special template functions
 
-## getPagesFrom(path: string)
+#### `getPagesFrom(path: string)`
 
 return an array of pages given a project relative path directory
 
@@ -148,7 +149,7 @@ page structure:
 }
 ```
 
-## getConfigFrom(id: number)
+#### `getConfigFrom(id: number)`
 
 return a key:value (typescript Record<string, string>) of configs from a file
 
@@ -160,7 +161,7 @@ Example:
   {% endfor %}
 ```
 
-## getJsonFrom(id: number)
+#### `getJsonFrom(id: number)`
 
 return JSON object to be accessed on template
 
@@ -175,7 +176,7 @@ Example:
 ```
 
 
-## getPagesByTag(tag: string)
+#### `getPagesByTag(tag: string)`
 
 return an ID array containing all pages marked with `tag`.
 
@@ -192,6 +193,19 @@ Example:
   {% endfor %}
 ```
 
+## Scripting
+
+Scripts is a very very(VERY!) experimental feature in cppaper, it allows you to run custom scripts.
+Scripts ran after all files detected by cppaper, but there are some special functions you can specify to run on certain parts of the program, these are called `hooks`(see more below).
+Every script has it own state, so if you can have a variable to be updated during all workflow of the program without losing any information.
+
+### Hooks
+
+Hooks are special functions called by `cppaper` on certain moment of the flow. For now there only one.
+
+#### `before_output`
+
+This hook run before cppaper creating files to `public` directory.
 
 ## Docs
 

@@ -5,6 +5,7 @@ src = files(
   'src/string_utils.cpp',
 
   'src/systems/template.cpp',
+  'src/systems/lua.cpp',
   'src/systems/config.cpp',
   'src/systems/title.cpp',
   'src/systems/index.cpp',
@@ -40,6 +41,7 @@ deps = []
 deps += cmark_gfm_sub.get_variable('cmark_gfm_dep')
 deps += inja_sub.get_variable('inja_dep')
 deps += entt_sub.get_variable('entt_dep')
+deps += subproject('sol2').get_variable('sol2_dep')
 
 cppaper_exe = executable('cppaper', src, include_directories: inc,
   dependencies: deps, install_dir: '/usr/bin/', install: true,
