@@ -20,7 +20,8 @@ void scanScriptFiles(entt::registry &registry) {
   std::map<std::string, std::filesystem::path> sortedScriptFiles;
 
   for(auto& file: std::filesystem::directory_iterator(scriptPath)) {
-    if(std::filesystem::is_regular_file(file) && file.path().extension() == "lua" ) {
+    std::cout << "Script found" << std::endl;
+    if(std::filesystem::is_regular_file(file) && file.path().extension() == ".lua" ) {
       sortedScriptFiles[file.path().string()] = file;
     }
   }
@@ -47,7 +48,7 @@ void luaBeforeTemplate(entt::registry &registry) {
   const auto scriptsView = registry.view<ScriptComponent>();
 
   for(auto it = scriptsView.rbegin(), last = scriptsView.rend(); it != last; ++it) {
-    scriptsView.get<ScriptComponent>(*it).lua.script("before_template()");
+    scriptsView.get<ScriptComponent>(*it).lua.script("if before_template then before_template() end");
   }
 }
 
@@ -55,7 +56,7 @@ void luaBeforeOutput(entt::registry &registry) {
   const auto scriptsView = registry.view<ScriptComponent>();
 
   for(auto it = scriptsView.rbegin(), last = scriptsView.rend(); it != last; ++it) {
-    scriptsView.get<ScriptComponent>(*it).lua.script("before_output()");
+    scriptsView.get<ScriptComponent>(*it).lua.script("if before_output then before_output() end");
   }
 }
 }
