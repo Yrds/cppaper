@@ -4,11 +4,13 @@
 #include "entt/entt.hpp"
 #include <filesystem>
 #include <map>
+#include <string>
 
 namespace cppaper {
-  struct SystemConfigComponent { 
+  struct SystemConfigComponent {
     std::filesystem::path publicDirectory{"public/"};
     std::map<std::filesystem::path, entt::entity> directoriesMap;
+    std::vector<std::string> luaLibraries;
   };
 }
 

@@ -3,6 +3,8 @@
 #include <filesystem>
 #include <fstream>
 
+#include "tfstring.h"
+
 #include "components/Config.hpp"
 #include "components/DirectoryComponent.hpp"
 #include "components/FileComponent.hpp"
@@ -10,6 +12,7 @@
 #include "components/ParentSite.hpp"
 #include "components/PathComponent.hpp"
 #include "components/Site.hpp"
+#include "components/SystemConfigComponent.hpp"
 
 namespace cppaper {
 
@@ -45,6 +48,18 @@ void configSystem(entt::registry &registry) {
 
   siteView.each([&registry](auto siteEntity, const auto &originPath) {
     registry.emplace<ConfigComponent>(siteEntity, getConfig(originPath.path));
+
+    const auto &systemEntity = registry.view<SystemConfigComponent>().front();
+
+    SystemConfigComponent &systemConfig =
+      registry.get<SystemConfigComponent>(systemEntity);
+
+    auto &siteConfig = registry.get<ConfigComponent>(siteEntity);
+
+    if(siteConfig.map.contains("lua_libraries")){
+      systemConfig.luaLibraries = tf::string{ siteConfig.map["lua_libraries"] }.split(',');
+    }
+
   });
 
   auto directoryView =

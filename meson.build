@@ -1,4 +1,4 @@
-project('cppaper', 'cpp', version: '0.22.1', default_options: ['cpp_std=c++20', 'default_library=static'])
+project('cppaper', 'cpp', version: '0.23.0', default_options: ['cpp_std=c++20', 'default_library=static'])
 
 src = files(
   #Utils
@@ -42,6 +42,7 @@ deps += cmark_gfm_sub.get_variable('cmark_gfm_dep')
 deps += inja_sub.get_variable('inja_dep')
 deps += entt_sub.get_variable('entt_dep')
 deps += subproject('sol2').get_variable('sol2_dep')
+deps += subproject('tfstring').get_variable('tfstring_dep')
 
 cppaper_exe = executable('cppaper', src, include_directories: inc,
   dependencies: deps, install_dir: '/usr/bin/', install: true,

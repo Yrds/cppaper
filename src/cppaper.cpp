@@ -323,14 +323,17 @@ int main(int argc, char *argv[], char *envp[]) try {
       argc, argv);
 
   std::cout << "Getting site" << std::endl;
-  getSite(registry);
 
+  getSite(registry);
 
   std::cout << "Loading directories" << std::endl;;
   loadSiteDirectories(registry);
 
   std::cout << "Reading files" << std::endl;
   loadSiteFiles(registry);
+
+  std::cout << "Reading configuration" << std::endl;
+  configSystem(registry);
 
   std::cout << "Scanning script files" << std::endl;
   scanScriptFiles(registry);
@@ -343,9 +346,6 @@ int main(int argc, char *argv[], char *envp[]) try {
 
   std::cout << "Reading file contents" << std::endl;
   readFilesContent(registry);
-
-  std::cout << "Reading configuration" << std::endl;
-  configSystem(registry);
 
   std::cout << "Finding 'no_output' files" << std::endl;
   noOutputValidation(registry);

@@ -5,10 +5,25 @@
 
 #include "components/FileComponent.hpp"
 #include "components/PathComponent.hpp"
+#include "components/SystemConfigComponent.hpp"
 #include "components/Script.hpp"
 
-
 namespace cppaper {
+
+inline static std::map<std::string, sol::lib> librariesMap {
+    {"base", sol::lib::base},
+    {"package", sol::lib::package},
+    {"coroutine", sol::lib::coroutine},
+    {"string", sol::lib::string},
+    {"os", sol::lib::os},
+    {"math", sol::lib::math},
+    {"table", sol::lib::table},
+    {"debug", sol::lib::debug},
+    {"bit32", sol::lib::bit32},
+    {"io", sol::lib::io},
+    {"ffi", sol::lib::ffi},
+    {"jit", sol::lib::jit}
+};
 
 void scanScriptFiles(entt::registry &registry) {
   std::filesystem::path scriptPath{"scripts"};
@@ -37,8 +52,17 @@ void scanScriptFiles(entt::registry &registry) {
 void initScriptSystem(entt::registry &registry) {
   const auto scriptsView = registry.view<const OriginPathComponent, ScriptComponent>().use<ScriptComponent>();
 
-  scriptsView.each([](const auto &originPathComponent, auto &scriptComponent){
-    scriptComponent.lua.open_libraries(sol::lib::base);
+  auto systemEntity = registry.view<SystemConfigComponent>().front();
+
+  SystemConfigComponent& systemConfig =
+      registry.get<SystemConfigComponent>(systemEntity);
+
+  scriptsView.each([&systemConfig](const auto &originPathComponent, auto &scriptComponent){
+    for(const auto &library : systemConfig.luaLibraries) {
+      std::cout << "loading library lua: " << library << std::endl;
+      scriptComponent.lua.open_libraries(librariesMap[library]);
+    }
+
     scriptComponent.lua.script_file(originPathComponent.path);
   });
 

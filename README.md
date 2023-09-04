@@ -65,6 +65,15 @@ Here's an example of directory structure with configs to Site, Directory and Fil
     - index.md.config #Config only for index.md file (eg. use a different template)
 ```
 
+#### Site
+
+|Config       |Type       |Description                                                                                                                            |Example     |
+|-------------|-----------|---------------------------------------------------------------------------------------------------------------------------------------|------------|
+|domain       |string     |Site main domain to use to generate sitemap.xml                                                                                        |example.com |
+|lua_libraries|string list|Lua libraries to load. Available: `base`, `package`, `coroutine`, `string`, `os`, `math`, `table`, `debug`, `bit32`, `io`, `ffi`, `jit`|base,package|
+
+#### Directories & Files
+
 |Config|Type|Description|
 |------|----|-----------|
 |markdown_unsafe|true(default) or false|Allow use of custom htmls in markdown|
@@ -72,6 +81,7 @@ Here's an example of directory structure with configs to Site, Directory and Fil
 |index|file|Specify a file to be used as index.html from templates directory|
 |tags|comma separated strings|File tags that can by used to be queried on templates|
 |no_output|false(default) or true|Exclude file from being output(also exclude from sitemap.xml and `get` like functions). Still processed as markdown and json|
+
 
 ### Special directories
 
@@ -204,6 +214,7 @@ Example:
 Scripts is a very very(VERY!) experimental feature in cppaper, it allows you to run custom scripts.
 Scripts ran after all files detected by cppaper, but there are some special functions you can specify to run on certain parts of the program, these are called `hooks`(see more below).
 Every script has it own state, so if you can have a variable to be updated during all workflow of the program without losing any information.
+No library is loaded by default(like base and package). So in order to some scripts to work you need to enable these libraries manually. See [lua_libraries in Site Config Section](#site)
 
 ### Hooks
 
