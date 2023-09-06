@@ -8,6 +8,7 @@ A static blog/site generator made in modern c++.
   - Pages using markdown(gfm with all extensions enabled)
   - Pages using json(nlohmann)
   - Custom Lua scripts(sol2)
+  - Sitemap.xml generation
 
 ## Installing
 
