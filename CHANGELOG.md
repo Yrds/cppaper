@@ -1,4 +1,28 @@
-# Changelog (since 0.17.0)
+# Changelog (since 0.23.1)
+
+### Added
+
+- `no_output` option
+- `page.id` added to template option
+- `getPathFrom` template function added
+- Initial lua script support
+- Starting migration to tfstring
+
+### Changed
+
+- Updated Docs
+- Updated inja to 3.4
+
+### Fixed
+
+- Organized meson.build
+- Code cleanup and more organized structure
+
+## [0.17.6]
+
+### Fixed
+
+- Fixed Index relative Path (fixed in 86b8ae3)
 
 ## [0.17.0]
 
