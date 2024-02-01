@@ -210,6 +210,25 @@ Example:
   {% endfor %}
 ```
 
+#### `lua(script: string)`
+
+Return the result of the script.
+
+Run lua directly from template
+
+Example:
+
+```
+    {{ lua("return string.upper('thanks to lua super powers I became uppercased')") }}
+```
+
+This will produce the following string:
+
+
+```
+THANKS TO LUA SUPER POWERS I BECAME UPPERCASED
+```
+
 ## Scripting
 
 Scripts is a very very(VERY!) experimental feature in cppaper, it allows you to run custom scripts.
