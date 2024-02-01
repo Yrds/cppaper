@@ -49,6 +49,13 @@ void scanScriptFiles(entt::registry &registry) {
 
 }
 
+void loadScriptsLibraries(SystemConfigComponent& systemConfigComponent, sol::state& lua) {
+    for(const auto &library : systemConfigComponent.luaLibraries) {
+      std::cout << "loading library lua: " << library << std::endl;
+      lua.open_libraries(librariesMap[library]);
+    }
+}
+
 void initScriptSystem(entt::registry &registry) {
   const auto scriptsView = registry.view<const OriginPathComponent, ScriptComponent>().use<ScriptComponent>();
 
@@ -58,10 +65,7 @@ void initScriptSystem(entt::registry &registry) {
       registry.get<SystemConfigComponent>(systemEntity);
 
   scriptsView.each([&systemConfig](const auto &originPathComponent, auto &scriptComponent){
-    for(const auto &library : systemConfig.luaLibraries) {
-      std::cout << "loading library lua: " << library << std::endl;
-      scriptComponent.lua.open_libraries(librariesMap[library]);
-    }
+    loadScriptsLibraries(systemConfig, scriptComponent.lua);
 
     scriptComponent.lua.script_file(originPathComponent.path);
   });

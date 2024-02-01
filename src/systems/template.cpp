@@ -26,6 +26,7 @@
 #include "template/functions/getPagesFrom.hpp"
 #include "template/functions/getJsonFrom.hpp"
 #include "template/functions/getPathFrom.hpp"
+#include "template/functions/lua.hpp"
 
 //TODO create a function to process generated content as inja templates
 
@@ -125,6 +126,7 @@ inline void registerCallbacks(entt::registry &registry, inja::Environment &env) 
   getJsonFrom(registry, env);
   getPagesByTagT(registry, env);
   getPathFromT(registry, env);
+  templ::scripts::luaT(registry, env);
 }
 
 void initTemplateEnvironment(entt::registry &registry) {
