@@ -33,6 +33,7 @@ All libraries are downloaded automatically
 ```
 meson setup build
 meson compile -C build
+./build/cppaper -C example # [Optional] Run cppaper against example project to test it!
 ```
 
 After the build, a binary will be available at `build/cppaper`
