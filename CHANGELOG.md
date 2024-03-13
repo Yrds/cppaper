@@ -1,4 +1,12 @@
-# Changelog (since 0.23.1)
+# Change Log
+
+## [0.25.0]
+
+### Added
+
+- Lua support added
+
+-------
 
 ### Added
 
