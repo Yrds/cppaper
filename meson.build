@@ -37,7 +37,6 @@ inja_sub = subproject('inja')
 
 entt_sub = subproject('entt')
 
-
 deps = []
 
 deps += cmark_gfm_sub.get_variable('cmark_gfm_dep')
