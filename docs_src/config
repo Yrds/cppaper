@@ -1,1 +1,3 @@
 domain=cppaper.yurisantos.dev
+process_as_template=false
+template=index.html

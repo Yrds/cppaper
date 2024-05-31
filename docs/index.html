@@ -1,11 +1,602 @@
+<h1>CPPaper</h1>
+<p>A static blog/site generator made in modern c++.</p>
+<h2>Features</h2>
+<ul>
+<li>Templates using <a href="https://github.com/pantor/inja">inja</a></li>
+<li>Pages using markdown(gfm with all extensions enabled)</li>
+<li>Pages using json(nlohmann)</li>
+<li>Custom Lua scripts(sol2)</li>
+<li>Sitemap.xml generation</li>
+</ul>
+<h2>Installing</h2>
+<h3>Package management</h3>
+<p>Aur:</p>
+<p><code>yay -S cppaper</code></p>
+<h3>Building</h3>
+<h4>Requirements</h4>
+<ul>
+<li>meson</li>
+<li>Any compiler which supports c++20</li>
+</ul>
+<p>All libraries are downloaded automatically</p>
+<h4>Instructions</h4>
+<pre><code>meson setup build
+meson compile -C build
+./build/cppaper -C example # [Optional] Run cppaper against example project to test it!
+</code></pre>
+<p>After the build, a binary will be available at <code>build/cppaper</code></p>
+<p>If you want to install alongside with needed dependencies it you must enter this command:</p>
+<p><code>meson install -C build --destdir /opt/cppaper</code></p>
+<p>Where <code>--destdir</code> will be the installation directory.</p>
+<p>Note: In case you don't have permission to install to a specific directory, you can use <code>sudo</code> with <code>meson install</code> safely.</p>
+<h2>Using/Example</h2>
+<p>I want to provide a more detailed guide on how to use <code>cppaper</code>, but for now I have a &quot;example&quot; directory with a fully working site, just run <code>cppaper</code> inside this directory and everything should work.</p>
+<h3>Simple documentation</h3>
+<p>Some configs aren't listed yet.
+Configs have the following hierarchy: <code>Site -&gt; Directory -&gt; File</code>.
+For example, if Site has <code>markdown_unsafe</code> set to <code>true</code> then its directories and files will have the same configuration, unless you overwrite the config</p>
+<p>Here's an example of directory structure with configs to Site, Directory and File:</p>
+<pre><code>- Project
+  - config #This will set configs for all site
+  - pages
+    - config #This will set configs for pages directory
+    - index.md 
+    - index.md.config #Config only for index.md file (eg. use a different template)
+</code></pre>
+<h4>Site</h4>
+<table>
+<thead>
+<tr>
+<th>Config</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>domain</td>
+<td>string</td>
+<td>Site main domain to use to generate sitemap.xml</td>
+<td>example.com</td>
+</tr>
+<tr>
+<td>lua_libraries</td>
+<td>string list</td>
+<td>Lua libraries to load. Available: <code>base</code>, <code>package</code>, <code>coroutine</code>, <code>string</code>, <code>os</code>, <code>math</code>, <code>table</code>, <code>debug</code>, <code>bit32</code>, <code>io</code>, <code>ffi</code>, <code>jit</code></td>
+<td>base,package</td>
+</tr>
+</tbody>
+</table>
+<h4>Directories &amp; Files</h4>
+<table>
+<thead>
+<tr>
+<th>Config</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>markdown_unsafe</td>
+<td>true(default) or false</td>
+<td>Allow use of custom htmls in markdown</td>
+</tr>
+<tr>
+<td>template</td>
+<td>file (Ex. template/cppaper-default/default.html)</td>
+<td>Specify a template to be used with a markdown or other content file</td>
+</tr>
+<tr>
+<td>index</td>
+<td>file</td>
+<td>Specify a file to be used as index.html from templates directory</td>
+</tr>
+<tr>
+<td>tags</td>
+<td>comma separated strings</td>
+<td>File tags that can by used to be queried on templates</td>
+</tr>
+<tr>
+<td>no_output</td>
+<td>false(default) or true</td>
+<td>Exclude file from being output(also exclude from sitemap.xml and <code>get</code> like functions). Still processed as markdown and json</td>
+</tr>
+</tbody>
+</table>
+<h3>Special directories</h3>
+<table>
+<thead>
+<tr>
+<th>Directory</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pages</td>
+<td>This directory goes all of your content pages: md, json, html, etc</td>
+</tr>
+<tr>
+<td>templates</td>
+<td>This is where cppaper will lookup for templates when you use <code>template</code> config</td>
+</tr>
+<tr>
+<td>public</td>
+<td>This directory can be created when you run cppaper for the first time and have all generated content from <code>pages</code> + assets directory</td>
+</tr>
+<tr>
+<td>public/assets</td>
+<td>cppaper delete every file in <code>public/*</code> except <code>public/assets/*</code>. Use this directory to put logos, big files, etc</td>
+</tr>
+<tr>
+<td>scripts</td>
+<td>lua scripts directory see <a href="#scripting">scripting section for more details</a></td>
+</tr>
+</tbody>
+</table>
+<h3>Special page extensions</h3>
+<table>
+<thead>
+<tr>
+<th>Extension</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>html</td>
+<td>html files are not included in template, instead html itself is a template file</td>
+</tr>
+<tr>
+<td>md</td>
+<td>markdown are compiled to html and can be included in a template by including a variable(See more in Special Variables)</td>
+</tr>
+<tr>
+<td>json</td>
+<td>same as markdown</td>
+</tr>
+</tbody>
+</table>
+<p>Other extensions are tread as &quot;raw&quot; and are copied without any modification.</p>
+<h3>Special variables</h3>
+<p>Variables are a feature from <code>inja</code> template engine, and you can use all default <code>inja</code> functions and variables, but cppaper include some platform specific to help you build templates</p>
+<p>Note: The default one line statement <code>##</code> was changed to <code>%%</code> due to markdown template support to not conflict with markdown headings.</p>
+<p>Generally you can use variables like this way:</p>
+<pre><code>&lt;body&gt;
+  {{site.config.template}}
+&lt;/body&gt;
+</code></pre>
+<h4>site</h4>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>config</td>
+<td>Access all configs and its values</td>
+</tr>
+</tbody>
+</table>
+<h4>Directory</h4>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>config</td>
+<td>Access all configs and its values</td>
+</tr>
+</tbody>
+</table>
+<h4>Page</h4>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>config</td>
+<td>Access all configs and its values</td>
+</tr>
+<tr>
+<td>title</td>
+<td>Automatically title generated by cppaper</td>
+</tr>
+<tr>
+<td>html</td>
+<td>Markdown generated content (for .md page)</td>
+</tr>
+<tr>
+<td>json</td>
+<td>JSON variables (for .json page)</td>
+</tr>
+</tbody>
+</table>
+<h3>Special template functions</h3>
+<h4><code>getPagesFrom(path: string)</code></h4>
+<p>return an array of pages given a project relative path directory</p>
+<p>Example:</p>
+<pre><code>    {% for page in getPagesFrom(&quot;.&quot;) %}
+      &lt;a href=&quot;{{page.path}}&quot;&gt;{{page.title}}&lt;/a&gt;
+    {% endfor %}
+</code></pre>
+<p>page structure:</p>
+<pre><code>{
+    title: string,
+    path: string,
+    id: number
+}
+</code></pre>
+<h4><code>getConfigFrom(id: number)</code></h4>
+<p>return a key:value (typescript Record&lt;string, string&gt;) of configs from a file</p>
+<p>Example:</p>
+<pre><code>  {% for page in getPagesFrom(&quot;.&quot;) %}
+    {% set config = getConfigFrom(page.id) %}
+    {{ config }}
+  {% endfor %}
+</code></pre>
+<h4><code>getJsonFrom(id: number)</code></h4>
+<p>return JSON object to be accessed on template</p>
+<p>If file is not a JSON file, <code>null</code> is returned instead.</p>
+<p>Example:</p>
+<pre><code>  {% for page in getPagesFrom(&quot;.&quot;) %}
+    {% set json = getJsonFrom(page.id) %}
+    {{ json.some_attribute }}
+  {% endfor %}
+</code></pre>
+<h4><code>getPagesByTag(tag: string)</code></h4>
+<p>return an ID array containing all pages marked with <code>tag</code>.</p>
+<p>If no page contain this tag, an empty array is returned</p>
+<p>NOTE: Different from <code>getPagesFrom</code> this only returns ID from pages objects(no titles or other attributes).</p>
+<p>Example:</p>
+<pre><code>  {% for pageID in getPagesByTag(&quot;article&quot;) %} 
+    {% set config = getConfigFrom(pageID) %}
+    {{ config }}
+  {% endfor %}
+</code></pre>
+<h4><code>lua(script: string)</code></h4>
+<p>Return the result of the script.</p>
+<p>Run lua directly from template</p>
+<p>Example:</p>
+<pre><code>    {{ lua(&quot;return string.upper('thanks to lua super powers I became uppercased')&quot;) }}
+</code></pre>
+<p>This will produce the following string:</p>
+<pre><code>THANKS TO LUA SUPER POWERS I BECAME UPPERCASED
+</code></pre>
+<h2>Scripting</h2>
+<p>Scripts is a very very(VERY!) experimental feature in cppaper, it allows you to run custom scripts.
+Scripts ran after all files detected by cppaper, but there are some special functions you can specify to run on certain parts of the program, these are called <code>hooks</code>(see more below).
+Every script has it own state, so if you can have a variable to be updated during all workflow of the program without losing any information.
+No library is loaded by default(like base and package). So in order to some scripts to work you need to enable these libraries manually. See <a href="#site">lua_libraries in Site Config Section</a></p>
+<h3>Hooks</h3>
+<p>Hooks are special functions called by <code>cppaper</code> on certain moment of the flow. For now there is only one.</p>
+<h4><code>before_template</code></h4>
+<p>This hook run before cppaper generates content based on templates.
+In this hook you can manipulate json data and markdown html or other pages attributes to change template results.</p>
+<h4><code>before_output</code></h4>
+<p>This hook run before cppaper creating files to <code>public</code> directory.</p>
+<h2>Docs</h2>
+<p>The docs are still in development, and is available <a href="https://cppaper.yurisantos.dev">online in html version</a></p>
+<p>You also can compile the docs, that uses <code>cppaper</code> as engine:</p>
+<p><code>meson compile -C build docs</code></p>
+
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>CPPaper</title>
+    <title>cppaper</title>
+    <link rel="stylesheet" href="https://matcha.mizu.sh/matcha.css">
   </head>
   <body>
-    The documentation is not ready yet! For now access [README.md](https://github.com/Yrds/cppaper/blob/master/README.md) from official repository.
+    <h1>CPPaper</h1>
+<p>A static blog/site generator made in modern c++.</p>
+<h2>Features</h2>
+<ul>
+<li>Templates using <a href="https://github.com/pantor/inja">inja</a></li>
+<li>Pages using markdown(gfm with all extensions enabled)</li>
+<li>Pages using json(nlohmann)</li>
+<li>Custom Lua scripts(sol2)</li>
+<li>Sitemap.xml generation</li>
+</ul>
+<h2>Installing</h2>
+<h3>Package management</h3>
+<p>Aur:</p>
+<p><code>yay -S cppaper</code></p>
+<h3>Building</h3>
+<h4>Requirements</h4>
+<ul>
+<li>meson</li>
+<li>Any compiler which supports c++20</li>
+</ul>
+<p>All libraries are downloaded automatically</p>
+<h4>Instructions</h4>
+<pre><code>meson setup build
+meson compile -C build
+./build/cppaper -C example # [Optional] Run cppaper against example project to test it!
+</code></pre>
+<p>After the build, a binary will be available at <code>build/cppaper</code></p>
+<p>If you want to install alongside with needed dependencies it you must enter this command:</p>
+<p><code>meson install -C build --destdir /opt/cppaper</code></p>
+<p>Where <code>--destdir</code> will be the installation directory.</p>
+<p>Note: In case you don't have permission to install to a specific directory, you can use <code>sudo</code> with <code>meson install</code> safely.</p>
+<h2>Using/Example</h2>
+<p>I want to provide a more detailed guide on how to use <code>cppaper</code>, but for now I have a &quot;example&quot; directory with a fully working site, just run <code>cppaper</code> inside this directory and everything should work.</p>
+<h3>Simple documentation</h3>
+<p>Some configs aren't listed yet.
+Configs have the following hierarchy: <code>Site -&gt; Directory -&gt; File</code>.
+For example, if Site has <code>markdown_unsafe</code> set to <code>true</code> then its directories and files will have the same configuration, unless you overwrite the config</p>
+<p>Here's an example of directory structure with configs to Site, Directory and File:</p>
+<pre><code>- Project
+  - config #This will set configs for all site
+  - pages
+    - config #This will set configs for pages directory
+    - index.md 
+    - index.md.config #Config only for index.md file (eg. use a different template)
+</code></pre>
+<h4>Site</h4>
+<table>
+<thead>
+<tr>
+<th>Config</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>domain</td>
+<td>string</td>
+<td>Site main domain to use to generate sitemap.xml</td>
+<td>example.com</td>
+</tr>
+<tr>
+<td>lua_libraries</td>
+<td>string list</td>
+<td>Lua libraries to load. Available: <code>base</code>, <code>package</code>, <code>coroutine</code>, <code>string</code>, <code>os</code>, <code>math</code>, <code>table</code>, <code>debug</code>, <code>bit32</code>, <code>io</code>, <code>ffi</code>, <code>jit</code></td>
+<td>base,package</td>
+</tr>
+</tbody>
+</table>
+<h4>Directories &amp; Files</h4>
+<table>
+<thead>
+<tr>
+<th>Config</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>markdown_unsafe</td>
+<td>true(default) or false</td>
+<td>Allow use of custom htmls in markdown</td>
+</tr>
+<tr>
+<td>template</td>
+<td>file (Ex. template/cppaper-default/default.html)</td>
+<td>Specify a template to be used with a markdown or other content file</td>
+</tr>
+<tr>
+<td>index</td>
+<td>file</td>
+<td>Specify a file to be used as index.html from templates directory</td>
+</tr>
+<tr>
+<td>tags</td>
+<td>comma separated strings</td>
+<td>File tags that can by used to be queried on templates</td>
+</tr>
+<tr>
+<td>no_output</td>
+<td>false(default) or true</td>
+<td>Exclude file from being output(also exclude from sitemap.xml and <code>get</code> like functions). Still processed as markdown and json</td>
+</tr>
+</tbody>
+</table>
+<h3>Special directories</h3>
+<table>
+<thead>
+<tr>
+<th>Directory</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pages</td>
+<td>This directory goes all of your content pages: md, json, html, etc</td>
+</tr>
+<tr>
+<td>templates</td>
+<td>This is where cppaper will lookup for templates when you use <code>template</code> config</td>
+</tr>
+<tr>
+<td>public</td>
+<td>This directory can be created when you run cppaper for the first time and have all generated content from <code>pages</code> + assets directory</td>
+</tr>
+<tr>
+<td>public/assets</td>
+<td>cppaper delete every file in <code>public/*</code> except <code>public/assets/*</code>. Use this directory to put logos, big files, etc</td>
+</tr>
+<tr>
+<td>scripts</td>
+<td>lua scripts directory see <a href="#scripting">scripting section for more details</a></td>
+</tr>
+</tbody>
+</table>
+<h3>Special page extensions</h3>
+<table>
+<thead>
+<tr>
+<th>Extension</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>html</td>
+<td>html files are not included in template, instead html itself is a template file</td>
+</tr>
+<tr>
+<td>md</td>
+<td>markdown are compiled to html and can be included in a template by including a variable(See more in Special Variables)</td>
+</tr>
+<tr>
+<td>json</td>
+<td>same as markdown</td>
+</tr>
+</tbody>
+</table>
+<p>Other extensions are tread as &quot;raw&quot; and are copied without any modification.</p>
+<h3>Special variables</h3>
+<p>Variables are a feature from <code>inja</code> template engine, and you can use all default <code>inja</code> functions and variables, but cppaper include some platform specific to help you build templates</p>
+<p>Note: The default one line statement <code>##</code> was changed to <code>%%</code> due to markdown template support to not conflict with markdown headings.</p>
+<p>Generally you can use variables like this way:</p>
+<pre><code>&lt;body&gt;
+  {{site.config.template}}
+&lt;/body&gt;
+</code></pre>
+<h4>site</h4>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>config</td>
+<td>Access all configs and its values</td>
+</tr>
+</tbody>
+</table>
+<h4>Directory</h4>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>config</td>
+<td>Access all configs and its values</td>
+</tr>
+</tbody>
+</table>
+<h4>Page</h4>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>config</td>
+<td>Access all configs and its values</td>
+</tr>
+<tr>
+<td>title</td>
+<td>Automatically title generated by cppaper</td>
+</tr>
+<tr>
+<td>html</td>
+<td>Markdown generated content (for .md page)</td>
+</tr>
+<tr>
+<td>json</td>
+<td>JSON variables (for .json page)</td>
+</tr>
+</tbody>
+</table>
+<h3>Special template functions</h3>
+<h4><code>getPagesFrom(path: string)</code></h4>
+<p>return an array of pages given a project relative path directory</p>
+<p>Example:</p>
+<pre><code>    {% for page in getPagesFrom(&quot;.&quot;) %}
+      &lt;a href=&quot;{{page.path}}&quot;&gt;{{page.title}}&lt;/a&gt;
+    {% endfor %}
+</code></pre>
+<p>page structure:</p>
+<pre><code>{
+    title: string,
+    path: string,
+    id: number
+}
+</code></pre>
+<h4><code>getConfigFrom(id: number)</code></h4>
+<p>return a key:value (typescript Record&lt;string, string&gt;) of configs from a file</p>
+<p>Example:</p>
+<pre><code>  {% for page in getPagesFrom(&quot;.&quot;) %}
+    {% set config = getConfigFrom(page.id) %}
+    {{ config }}
+  {% endfor %}
+</code></pre>
+<h4><code>getJsonFrom(id: number)</code></h4>
+<p>return JSON object to be accessed on template</p>
+<p>If file is not a JSON file, <code>null</code> is returned instead.</p>
+<p>Example:</p>
+<pre><code>  {% for page in getPagesFrom(&quot;.&quot;) %}
+    {% set json = getJsonFrom(page.id) %}
+    {{ json.some_attribute }}
+  {% endfor %}
+</code></pre>
+<h4><code>getPagesByTag(tag: string)</code></h4>
+<p>return an ID array containing all pages marked with <code>tag</code>.</p>
+<p>If no page contain this tag, an empty array is returned</p>
+<p>NOTE: Different from <code>getPagesFrom</code> this only returns ID from pages objects(no titles or other attributes).</p>
+<p>Example:</p>
+<pre><code>  {% for pageID in getPagesByTag(&quot;article&quot;) %} 
+    {% set config = getConfigFrom(pageID) %}
+    {{ config }}
+  {% endfor %}
+</code></pre>
+<h4><code>lua(script: string)</code></h4>
+<p>Return the result of the script.</p>
+<p>Run lua directly from template</p>
+<p>Example:</p>
+<pre><code>    {{ lua(&quot;return string.upper('thanks to lua super powers I became uppercased')&quot;) }}
+</code></pre>
+<p>This will produce the following string:</p>
+<pre><code>THANKS TO LUA SUPER POWERS I BECAME UPPERCASED
+</code></pre>
+<h2>Scripting</h2>
+<p>Scripts is a very very(VERY!) experimental feature in cppaper, it allows you to run custom scripts.
+Scripts ran after all files detected by cppaper, but there are some special functions you can specify to run on certain parts of the program, these are called <code>hooks</code>(see more below).
+Every script has it own state, so if you can have a variable to be updated during all workflow of the program without losing any information.
+No library is loaded by default(like base and package). So in order to some scripts to work you need to enable these libraries manually. See <a href="#site">lua_libraries in Site Config Section</a></p>
+<h3>Hooks</h3>
+<p>Hooks are special functions called by <code>cppaper</code> on certain moment of the flow. For now there is only one.</p>
+<h4><code>before_template</code></h4>
+<p>This hook run before cppaper generates content based on templates.
+In this hook you can manipulate json data and markdown html or other pages attributes to change template results.</p>
+<h4><code>before_output</code></h4>
+<p>This hook run before cppaper creating files to <code>public</code> directory.</p>
+<h2>Docs</h2>
+<p>The docs are still in development, and is available <a href="https://cppaper.yurisantos.dev">online in html version</a></p>
+<p>You also can compile the docs, that uses <code>cppaper</code> as engine:</p>
+<p><code>meson compile -C build docs</code></p>
+
+    <br/>
   </body>
 </html>

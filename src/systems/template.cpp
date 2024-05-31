@@ -150,16 +150,30 @@ void templateSystem(entt::registry &registry) {
 
 }
 
+
+/*
+* Process content file by the template engine
+* e.g. A markdown file content that wants to be processed
+* In other words the file content is the template
+*
+* NOTE: this can cause problems if you want demonstrate inja or semelhant syntax code into a markdown file
+* Because of historical reasons this is enabled by default
+* So I added a new option process_as_template where `false` value disables it.
+*/
 void templateFileContent(entt::registry &registry) {
 
   auto view = registry.view<const FileComponent, const ParentDirectoryComponent,
                             const ParentSite, const ConfigComponent,
                             const TitleComponent, const FileContentComponent>();
-  //TODO Add a flag to FileContentComponent
 
   view.each([&registry](const auto entity, const auto &parentDirectory,
                         const auto &parentSite, const auto &config,
                         const auto &title, const auto& fileContent) {
+
+    if (config.map.contains("process_as_template") && config.map.at("process_as_template") == "false") {
+      return;
+    }
+
     generateContent(registry, entity, parentDirectory, parentSite, config,
                     title, true);
   });

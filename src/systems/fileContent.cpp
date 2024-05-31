@@ -1,3 +1,4 @@
+#include "components/Config.hpp"
 #include "components/FileComponent.hpp"
 #include "components/FileContentComponent.hpp"
 #include "components/MarkdownComponent.hpp"
@@ -6,7 +7,6 @@
 
 #include <fstream>
 #include <sstream>
-#include <string_view>
 
 #include<iostream>
 
@@ -16,8 +16,7 @@ void readFilesContent(entt::registry &registry) {
   // But I have plans for the future for all non RawFileComponent
 
   auto markdownFileView =
-      registry.view<const FileComponent, const MarkdownComponent,
-                    const OriginPathComponent>();
+      registry.view<const FileComponent, const OriginPathComponent, const MarkdownComponent>();
 
   markdownFileView.each(
       [&registry](const auto entity, const auto &originPathComponent) {

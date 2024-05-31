@@ -83,7 +83,6 @@ Here's an example of directory structure with configs to Site, Directory and Fil
 |index|file|Specify a file to be used as index.html from templates directory|
 |tags|comma separated strings|File tags that can by used to be queried on templates|
 |no_output|false(default) or true|Exclude file from being output(also exclude from sitemap.xml and `get` like functions). Still processed as markdown and json|
-|process_as_template|true(default) or false|Markdown Only - Process file content as template allowing use of inja template functions in markdown files.|
 
 
 ### Special directories
