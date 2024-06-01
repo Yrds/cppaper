@@ -26,7 +26,11 @@ src = files(
   'src/template/functions/getJsonFrom.cpp',
   'src/template/functions/getPagesByTag.cpp',
   'src/template/functions/getPathFrom.cpp',
-  'src/template/functions/lua.cpp'
+  'src/template/functions/lua.cpp',
+  'src/template/functions/getPagesWithConfig.cpp',
+
+  #Lua functions
+  'src/script/functions/getPagesWithConfig.cpp'
   )
 
 inc = include_directories('src')

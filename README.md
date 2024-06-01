@@ -18,6 +18,7 @@ Aur:
 
 `yay -S cppaper`
 
+NOTE: Aur is temporary disabled
 
 ### Building
 
@@ -231,12 +232,70 @@ This will produce the following string:
 THANKS TO LUA SUPER POWERS I BECAME UPPERCASED
 ```
 
+#### `getPagesWithConfig(config: string)`
+
+return an entity ID array containing all pages with config `config` regardless the value (case sensitive).
+
+Example:
+
+```html
+<h2>Pages with the config 'title'</h2>
+<ul>
+%% for page in getPagesWithConfig("title")
+  <li>{{ getConfigFrom(page) }}: {{ getPathFrom(page) }}</li>
+%% endfor
+   <li></li>
+</ul>
+```
+
+#### `getPagesWithConfig(config: string, value: string)`
+
+return an entity ID array containing all pages with config `config` with the value `value`(case sensitve both for config and value).
+
+Example:
+
+```html
+<h2>Pages with the config markdown_unsafe = 'true'</h2>
+<ul>
+%% for page in getPagesWithConfig("markdown_unsafe", "true")
+  <li>{{ getConfigFrom(page) }}: {{ getPathFrom(page) }}</li>
+%% endfor
+  <li></li>
+</ul>
+```
+
 ## Scripting
 
 Scripts is a very very(VERY!) experimental feature in cppaper, it allows you to run custom scripts.
 Scripts ran after all files detected by cppaper, but there are some special functions you can specify to run on certain parts of the program, these are called `hooks`(see more below).
 Every script has it own state, so if you can have a variable to be updated during all workflow of the program without losing any information.
 No library is loaded by default(like base and package). So in order to some scripts to work you need to enable these libraries manually. See [lua_libraries in Site Config Section](#site)
+
+### Special template functions
+
+#### `getPagesWithConfig(config: string)`
+
+return an entity ID array containing all pages with config `config` regardless the value (case sensitive).
+
+Example:
+
+```lua
+for _, v in ipairs(get_pages_with_config('title')) do
+    print(v)
+end
+```
+
+#### `get_pages_with_config(config: string, value: string)`
+
+return an entity ID array containing all pages with config `config` with the value `value`(case sensitve both for config and value).
+
+Example:
+
+```lua
+for _, v in ipairs(get_pages_with_config('title', 'Custom Title')) do
+  print(v)
+end
+```
 
 ### Hooks
 

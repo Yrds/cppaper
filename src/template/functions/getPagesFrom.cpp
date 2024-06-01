@@ -2,20 +2,21 @@
 
 #include "components/ChildFileComponent.hpp"
 #include "components/PathComponent.hpp"
-#include "components/SystemConfigComponent.hpp"
 #include "components/TitleComponent.hpp"
 #include "components/NoOutput.hpp"
+#include "components/SystemConfigComponent.hpp"
 
 namespace cppaper {
 void getPagesFrom(entt::registry &registry, inja::Environment& env) {
 
   env.add_callback("getPagesFrom", 1, [&registry](inja::Arguments args) {
-    auto systemEntity = registry.view<SystemConfigComponent>().front();
-    auto systemConfig = registry.get<SystemConfigComponent>(systemEntity);
 
     auto relativePath = args.at(0)->get<std::string>();
 
     inja::json data = inja::json::array();
+
+    auto systemEntity = registry.view<SystemConfigComponent>().front();
+    SystemConfigComponent& systemConfig = registry.get<SystemConfigComponent>(systemEntity);
 
     if (systemConfig.directoriesMap.contains(relativePath)) {
 

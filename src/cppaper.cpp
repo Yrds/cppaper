@@ -9,6 +9,7 @@
 
 #include "Site.hpp"
 
+#include "components/SystemConfigComponent.hpp"
 #include "components/NoOutput.hpp"
 #include "components/ParentDirectory.hpp"
 #include "components/ChildFileComponent.hpp"
@@ -25,7 +26,6 @@
 #include "components/PathComponent.hpp"
 #include "components/RawFileComponent.hpp"
 #include "components/Site.hpp"
-#include "components/SystemConfigComponent.hpp"
 #include "components/SitemapComponent.hpp"
 #include "components/RelativePath.hpp"
 

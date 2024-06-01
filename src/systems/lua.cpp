@@ -8,6 +8,8 @@
 #include "components/SystemConfigComponent.hpp"
 #include "components/Script.hpp"
 
+#include "script/functions/getPagesWithConfig.hpp"
+
 namespace cppaper {
 
 inline static std::map<std::string, sol::lib> librariesMap {
@@ -56,6 +58,12 @@ void loadScriptsLibraries(SystemConfigComponent& systemConfigComponent, sol::sta
     }
 }
 
+void loadScriptCppaperFunctions(entt::registry& registry, sol::state& lua) {
+      std::cout << "loading cppaper function into lua..." << std::endl;
+
+      script::functions::getPagesWithConfig(registry, lua);
+}
+
 void initScriptSystem(entt::registry &registry) {
   const auto scriptsView = registry.view<const OriginPathComponent, ScriptComponent>().use<ScriptComponent>();
 
@@ -64,8 +72,12 @@ void initScriptSystem(entt::registry &registry) {
   SystemConfigComponent& systemConfig =
       registry.get<SystemConfigComponent>(systemEntity);
 
-  scriptsView.each([&systemConfig](const auto &originPathComponent, auto &scriptComponent){
+  loadScriptCppaperFunctions(registry, systemConfig.lua);
+  loadScriptsLibraries(systemConfig, systemConfig.lua);
+
+  scriptsView.each([&](const auto &originPathComponent, auto &scriptComponent){
     loadScriptsLibraries(systemConfig, scriptComponent.lua);
+    loadScriptCppaperFunctions(registry, scriptComponent.lua);
 
     scriptComponent.lua.script_file(originPathComponent.path);
   });
