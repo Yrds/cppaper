@@ -12,6 +12,7 @@
 <h3>Package management</h3>
 <p>Aur:</p>
 <p><code>yay -S cppaper</code></p>
+<p>NOTE: Aur is temporary disabled</p>
 <h3>Building</h3>
 <h4>Requirements</h4>
 <ul>
@@ -281,11 +282,48 @@ For example, if Site has <code>markdown_unsafe</code> set to <code>true</code> t
 <p>This will produce the following string:</p>
 <pre><code>THANKS TO LUA SUPER POWERS I BECAME UPPERCASED
 </code></pre>
+<h4><code>getPagesWithConfig(config: string)</code></h4>
+<p>return an entity ID array containing all pages with config <code>config</code> regardless the value (case sensitive).</p>
+<p>Example:</p>
+<pre><code class="language-html">&lt;h2&gt;Pages with the config 'title'&lt;/h2&gt;
+&lt;ul&gt;
+%% for page in getPagesWithConfig(&quot;title&quot;)
+  &lt;li&gt;{{ getConfigFrom(page) }}: {{ getPathFrom(page) }}&lt;/li&gt;
+%% endfor
+   &lt;li&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</code></pre>
+<h4><code>getPagesWithConfig(config: string, value: string)</code></h4>
+<p>return an entity ID array containing all pages with config <code>config</code> with the value <code>value</code>(case sensitve both for config and value).</p>
+<p>Example:</p>
+<pre><code class="language-html">&lt;h2&gt;Pages with the config markdown_unsafe = 'true'&lt;/h2&gt;
+&lt;ul&gt;
+%% for page in getPagesWithConfig(&quot;markdown_unsafe&quot;, &quot;true&quot;)
+  &lt;li&gt;{{ getConfigFrom(page) }}: {{ getPathFrom(page) }}&lt;/li&gt;
+%% endfor
+  &lt;li&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</code></pre>
 <h2>Scripting</h2>
 <p>Scripts is a very very(VERY!) experimental feature in cppaper, it allows you to run custom scripts.
 Scripts ran after all files detected by cppaper, but there are some special functions you can specify to run on certain parts of the program, these are called <code>hooks</code>(see more below).
 Every script has it own state, so if you can have a variable to be updated during all workflow of the program without losing any information.
 No library is loaded by default(like base and package). So in order to some scripts to work you need to enable these libraries manually. See <a href="#site">lua_libraries in Site Config Section</a></p>
+<h3>Special template functions</h3>
+<h4><code>getPagesWithConfig(config: string)</code></h4>
+<p>return an entity ID array containing all pages with config <code>config</code> regardless the value (case sensitive).</p>
+<p>Example:</p>
+<pre><code class="language-lua">for _, v in ipairs(get_pages_with_config('title')) do
+    print(v)
+end
+</code></pre>
+<h4><code>get_pages_with_config(config: string, value: string)</code></h4>
+<p>return an entity ID array containing all pages with config <code>config</code> with the value <code>value</code>(case sensitve both for config and value).</p>
+<p>Example:</p>
+<pre><code class="language-lua">for _, v in ipairs(get_pages_with_config('title', 'Custom Title')) do
+  print(v)
+end
+</code></pre>
 <h3>Hooks</h3>
 <p>Hooks are special functions called by <code>cppaper</code> on certain moment of the flow. For now there is only one.</p>
 <h4><code>before_template</code></h4>
@@ -294,8 +332,9 @@ In this hook you can manipulate json data and markdown html or other pages attri
 <h4><code>before_output</code></h4>
 <p>This hook run before cppaper creating files to <code>public</code> directory.</p>
 <h2>Docs</h2>
-<p>The docs are still in development, and is available <a href="https://cppaper.yurisantos.dev">online in html version</a></p>
-<p>You also can compile the docs, that uses <code>cppaper</code> as engine:</p>
+<p>The documentation are still in development, and is available <a href="https://cppaper.yurisantos.dev">online in html version</a>.</p>
+<p>You can also see the <a href="https://cppaper.yurisantos.dev/changelog.html">html version of changelog</a></p>
+<p>You can also compile the docs, that uses <code>cppaper</code> as engine:</p>
 <p><code>meson compile -C build docs</code></p>
 
 <!DOCTYPE html>
@@ -321,6 +360,7 @@ In this hook you can manipulate json data and markdown html or other pages attri
 <h3>Package management</h3>
 <p>Aur:</p>
 <p><code>yay -S cppaper</code></p>
+<p>NOTE: Aur is temporary disabled</p>
 <h3>Building</h3>
 <h4>Requirements</h4>
 <ul>
@@ -590,11 +630,48 @@ For example, if Site has <code>markdown_unsafe</code> set to <code>true</code> t
 <p>This will produce the following string:</p>
 <pre><code>THANKS TO LUA SUPER POWERS I BECAME UPPERCASED
 </code></pre>
+<h4><code>getPagesWithConfig(config: string)</code></h4>
+<p>return an entity ID array containing all pages with config <code>config</code> regardless the value (case sensitive).</p>
+<p>Example:</p>
+<pre><code class="language-html">&lt;h2&gt;Pages with the config 'title'&lt;/h2&gt;
+&lt;ul&gt;
+%% for page in getPagesWithConfig(&quot;title&quot;)
+  &lt;li&gt;{{ getConfigFrom(page) }}: {{ getPathFrom(page) }}&lt;/li&gt;
+%% endfor
+   &lt;li&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</code></pre>
+<h4><code>getPagesWithConfig(config: string, value: string)</code></h4>
+<p>return an entity ID array containing all pages with config <code>config</code> with the value <code>value</code>(case sensitve both for config and value).</p>
+<p>Example:</p>
+<pre><code class="language-html">&lt;h2&gt;Pages with the config markdown_unsafe = 'true'&lt;/h2&gt;
+&lt;ul&gt;
+%% for page in getPagesWithConfig(&quot;markdown_unsafe&quot;, &quot;true&quot;)
+  &lt;li&gt;{{ getConfigFrom(page) }}: {{ getPathFrom(page) }}&lt;/li&gt;
+%% endfor
+  &lt;li&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</code></pre>
 <h2>Scripting</h2>
 <p>Scripts is a very very(VERY!) experimental feature in cppaper, it allows you to run custom scripts.
 Scripts ran after all files detected by cppaper, but there are some special functions you can specify to run on certain parts of the program, these are called <code>hooks</code>(see more below).
 Every script has it own state, so if you can have a variable to be updated during all workflow of the program without losing any information.
 No library is loaded by default(like base and package). So in order to some scripts to work you need to enable these libraries manually. See <a href="#site">lua_libraries in Site Config Section</a></p>
+<h3>Special template functions</h3>
+<h4><code>getPagesWithConfig(config: string)</code></h4>
+<p>return an entity ID array containing all pages with config <code>config</code> regardless the value (case sensitive).</p>
+<p>Example:</p>
+<pre><code class="language-lua">for _, v in ipairs(get_pages_with_config('title')) do
+    print(v)
+end
+</code></pre>
+<h4><code>get_pages_with_config(config: string, value: string)</code></h4>
+<p>return an entity ID array containing all pages with config <code>config</code> with the value <code>value</code>(case sensitve both for config and value).</p>
+<p>Example:</p>
+<pre><code class="language-lua">for _, v in ipairs(get_pages_with_config('title', 'Custom Title')) do
+  print(v)
+end
+</code></pre>
 <h3>Hooks</h3>
 <p>Hooks are special functions called by <code>cppaper</code> on certain moment of the flow. For now there is only one.</p>
 <h4><code>before_template</code></h4>
@@ -603,8 +680,9 @@ In this hook you can manipulate json data and markdown html or other pages attri
 <h4><code>before_output</code></h4>
 <p>This hook run before cppaper creating files to <code>public</code> directory.</p>
 <h2>Docs</h2>
-<p>The docs are still in development, and is available <a href="https://cppaper.yurisantos.dev">online in html version</a></p>
-<p>You also can compile the docs, that uses <code>cppaper</code> as engine:</p>
+<p>The documentation are still in development, and is available <a href="https://cppaper.yurisantos.dev">online in html version</a>.</p>
+<p>You can also see the <a href="https://cppaper.yurisantos.dev/changelog.html">html version of changelog</a></p>
+<p>You can also compile the docs, that uses <code>cppaper</code> as engine:</p>
 <p><code>meson compile -C build docs</code></p>
 
     <br/>

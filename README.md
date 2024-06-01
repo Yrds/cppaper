@@ -312,8 +312,10 @@ This hook run before cppaper creating files to `public` directory.
 
 ## Docs
 
-The docs are still in development, and is available [online in html version](https://cppaper.yurisantos.dev)
+The documentation are still in development, and is available [online in html version](https://cppaper.yurisantos.dev).
 
-You also can compile the docs, that uses `cppaper` as engine:
+You can also see the [html version of changelog](https://cppaper.yurisantos.dev/changelog.html)
+
+You can also compile the docs, that uses `cppaper` as engine:
 
 `meson compile -C build docs`
