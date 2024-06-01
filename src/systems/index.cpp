@@ -12,6 +12,8 @@
 #include "components/RelativePath.hpp"
 #include "components/PathComponent.hpp"
 
+#include <iostream>
+
 namespace cppaper {
 void indexSystem(entt::registry &registry) {
   auto directoryView = registry.view<const ConfigComponent, const ParentSite,
@@ -30,8 +32,10 @@ void indexSystem(entt::registry &registry) {
       registry.emplace<ParentDirectoryComponent>(indexFileEntity,
                                                  directoryEntity);
 
+      std::cout << std::filesystem::absolute(std::filesystem::path("templates/" + indexConfig->second)) << std::endl;
+
       if (auto indexTemplateFile =
-              std::filesystem::path("./templates/" + indexConfig->second);
+              std::filesystem::path("templates/" + indexConfig->second);
           std::filesystem::exists(indexTemplateFile)) {
         registry.emplace<IndexFileComponent>(indexFileEntity,
                                              indexConfig->second);

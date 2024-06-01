@@ -28,5 +28,30 @@
       {% endfor %}
       <li></li>
     </ul>
+
+    <h2>Pages with the config 'title'</h2>
+    <ul>
+%% for page in getPagesWithConfig("title")
+      <li>{{ getConfigFrom(page) }}: {{ getPathFrom(page) }}</li>
+%% endfor
+      <li></li>
+    </ul>
+
+    <h2>Pages with the config title = 'Custom Title'</h2>
+    <ul>
+%% for page in getPagesWithConfig("title", "Custom Title")
+      <li>{{ getConfigFrom(page) }}: {{ getPathFrom(page) }}</li>
+%% endfor
+      <li></li>
+    </ul>
+
+    <h2>Pages with the config markdown_unsafe = 'true'</h2>
+    <ul>
+%% for page in getPagesWithConfig("markdown_unsafe", "true")
+      <li>{{ getConfigFrom(page) }}: {{ getPathFrom(page) }}</li>
+%% endfor
+      <li></li>
+    </ul>
+
   </body>
 </html>

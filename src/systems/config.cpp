@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 
 #include "tfstring.h"
 
@@ -41,13 +42,61 @@ ConfigMap getConfig(const std::filesystem::path &directory) {
   return directoryConfig;
 }
 
+void addConfigToIndex(const ConfigComponent& configComponent, const entt::entity siteEntity) {
+  for (const auto& [key, value]: configComponent.map) {
+    std::map<std::string, std::vector<entt::entity>>* configNameMap;
+    if (!configIndex.contains(key)) {
+      configIndex[key] = std::map<std::string, std::vector<entt::entity>>{};
+    }
+    configNameMap = &configIndex.at(key);
+
+    std::vector<entt::entity>* configEntities;
+    if (!configNameMap->contains(value)) {
+      (*configNameMap)[value] = std::vector<entt::entity>{};
+    }
+
+    configEntities = &(configNameMap->at(value));
+
+    configEntities->push_back(siteEntity);
+  }
+}
+
+std::vector<entt::entity> getPagesWithConfig(std::string configName) {
+  std::vector<entt::entity> entities{};
+  auto config = configIndex.find(configName);
+  if (config != configIndex.end()) {
+    for (const auto &key : config->second) {
+      for (const auto& entity: key.second) {
+        entities.push_back(entity);
+      }
+    }
+  }
+
+  return entities;
+}
+
+std::vector<entt::entity> getPagesWithConfig(std::string configName, std::string configValue) {
+  std::vector<entt::entity> entities{};
+  auto config = configIndex.find(configName);
+  if (config != configIndex.end()) {
+    auto configValueMap = config->second.find(configValue);
+    if (configValueMap != config->second.end()) {
+      for (const auto& entity: configValueMap->second) {
+        entities.push_back(entity);
+      }
+    }
+  }
+
+  return entities;
+}
+
 void configSystem(entt::registry &registry) {
 
   auto siteView =
       registry.view<const OriginPathComponent, const SiteComponent>();
 
   siteView.each([&registry](auto siteEntity, const auto &originPath) {
-    registry.emplace<ConfigComponent>(siteEntity, getConfig(originPath.path));
+    registry.emplace<ConfigComponent>(siteEntity, ConfigComponent{ getConfig(originPath.path) });
 
     const auto &systemEntity = registry.view<SystemConfigComponent>().front();
 
@@ -96,5 +145,22 @@ void configSystem(entt::registry &registry) {
       fileConfig.map[key] = value;
     }
   });
+
+
+  const auto configView = registry.view<const ConfigComponent, const FileComponent>();
+  configView.each([](const auto entity, const auto& configComponent){
+    addConfigToIndex(configComponent, entity);
+  });
+
+  std::cout << "Listing configs" << std::endl;
+  for (const auto& config: configIndex) {
+    for (const auto& key: config.second) {
+      std::cout << config.first << "[" << key.first << "]" << ":" << std::endl;
+      for (const auto entity: key.second) {
+        std::cout << static_cast<unsigned int>(entity) << ", ";
+      }
+      std::cout << std::endl;
+    }
+  }
 }
 } // namespace cppaper

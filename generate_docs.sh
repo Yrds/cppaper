@@ -1,5 +1,5 @@
 #!/bin/bash
-#
+
 
 if [[ -z ${MESON_BUILD_ROOT} ]]; then
   echo "This script must be runned by 'meson compile -C build docs' command"
