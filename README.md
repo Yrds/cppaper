@@ -281,7 +281,7 @@ Example:
 
 ```lua
 for _, v in ipairs(get_pages_with_config('title')) do
-    print(v)
+  print(v)
 end
 ```
 
@@ -294,6 +294,18 @@ Example:
 ```lua
 for _, v in ipairs(get_pages_with_config('title', 'Custom Title')) do
   print(v)
+end
+```
+
+#### `get_config_from_page(entity: number)`
+
+return a table containing configurations from `entity`.
+
+Example:
+
+```lua
+for _, v in ipairs(get_pages_with_config('title')) do
+  print(v .. ": " .. get_config_from_page(v).title)
 end
 ```
 

@@ -3,12 +3,13 @@
 #include <filesystem>
 #include <map>
 
-#include "components/FileComponent.hpp"
 #include "components/PathComponent.hpp"
 #include "components/SystemConfigComponent.hpp"
 #include "components/Script.hpp"
 
+//Script functions
 #include "script/functions/getPagesWithConfig.hpp"
+#include "script/functions/getConfigFromPage.hpp"
 
 namespace cppaper {
 
@@ -48,7 +49,6 @@ void scanScriptFiles(entt::registry &registry) {
     registry.emplace<OriginPathComponent>(scriptId, file.second);
     registry.emplace<ScriptComponent>(scriptId);
   }
-
 }
 
 void loadScriptsLibraries(SystemConfigComponent& systemConfigComponent, sol::state& lua) {
@@ -62,6 +62,7 @@ void loadScriptCppaperFunctions(entt::registry& registry, sol::state& lua) {
       std::cout << "loading cppaper function into lua..." << std::endl;
 
       script::functions::getPagesWithConfig(registry, lua);
+      script::functions::getConfigFromPage(registry, lua);
 }
 
 void initScriptSystem(entt::registry &registry) {

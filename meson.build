@@ -30,7 +30,8 @@ src = files(
   'src/template/functions/getPagesWithConfig.cpp',
 
   #Lua functions
-  'src/script/functions/getPagesWithConfig.cpp'
+  'src/script/functions/getPagesWithConfig.cpp',
+  'src/script/functions/getConfigFromPage.cpp'
   )
 
 inc = include_directories('src')
