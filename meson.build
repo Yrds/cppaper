@@ -53,8 +53,12 @@ cppaper_exe = executable('cppaper', src, include_directories: inc,
   dependencies: deps, install_dir: '/usr/bin/', install: true,
   )
 
-generate_docs = run_target('docs', depends:[cppaper_exe],
+generate_docs = run_target('docs', depends: [cppaper_exe],
   command: ['generate_docs.sh'])
+
+#This is temporary. I want this to be a c++ test suite so it can be cross platform
+test_script = run_target('test_script', depends: [cppaper_exe],
+  command: ['test_expected.sh'])
 
 #TODO benchmark
 #bm_markdown_250 = benchmark('markdown_250', 'cppaper', args: ['-C', './bench'] depends: [cppaper_exe])
