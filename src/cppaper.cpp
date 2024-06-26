@@ -379,6 +379,7 @@ int main(int argc, char *argv[], char *envp[]) try {
   std::cout << "Initialiazing template environment" << std::endl;
   initTemplateEnvironment(registry);
 
+  //TODO generate TemplateComponent
   std::cout << "Templating content" << std::endl;
   templateFileContent(registry);
 
