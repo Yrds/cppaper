@@ -1,11 +1,11 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <map>
 #include <queue>
 #include <stdexcept>
 #include <string>
-#include <vector>
+#include <ranges>
+#include <set>
 
 #include "Site.hpp"
 
@@ -82,12 +82,14 @@ void loadSiteDirectories(entt::registry &registry) {
       registry.emplace<OriginPathComponent>(directoryEntity, directoryPath);
     }
 
-    std::queue<std::filesystem::path> directories{{"pages"}};
+    std::set<std::filesystem::path> directories{{"pages"}};
 
     while (!directories.empty()) {
-      auto directory = directories.front();
+      const auto directory = *directories.begin();
       for (auto const &dirEntry :
-           std::filesystem::directory_iterator{directory}) {
+        std::filesystem::directory_iterator{directory}) {
+
+        std::cout << dirEntry << std::endl;
 
         if (std::filesystem::is_directory(dirEntry)) {
           const auto directoryEntity = registry.create();
@@ -99,11 +101,11 @@ void loadSiteDirectories(entt::registry &registry) {
           registry.emplace<OriginPathComponent>(directoryEntity,
                                                 dirEntry.path());
 
-          directories.push(dirEntry.path());
+          directories.insert(dirEntry.path());
         }
       }
 
-      directories.pop();
+      directories.erase(directory);
     }
   });
 }
