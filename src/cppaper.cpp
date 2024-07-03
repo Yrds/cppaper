@@ -112,35 +112,48 @@ void loadSiteDirectories(entt::registry &registry) {
 
 void loadSiteFiles(entt::registry &registry) {
   const auto directoriesView =
-      registry.view<const OriginPathComponent, const DirectoryComponent,
-                    ChildFileComponent>();
+    registry.view<const OriginPathComponent, const DirectoryComponent,
+    ChildFileComponent>();
 
   const auto siteEntity = registry.view<const SiteComponent>().front();
 
-  directoriesView.each([&registry, &siteEntity](const auto dirEntity,
-                                                const auto &originPath,
-                                                auto &children) {
-    for (auto const &dirEntry :
-         std::filesystem::directory_iterator{originPath.path}) {
+  directoriesView.each(
+    [&registry, &siteEntity](
+      const auto dirEntity,
+      const auto &originPath,
+      auto &children
+    ) {
+      std::cout << "Reading directory: " << originPath.path << std::endl;
 
-      if (!std::filesystem::is_regular_file(dirEntry) ||
-          dirEntry.path().filename() == "config" ||
-          dirEntry.path().filename().string().ends_with(".config")) {
-        continue;
+      //TODO use std::ranges::to<std::set> in the future
+      const auto sortedDirectories = [=]() -> std::set<std::filesystem::path> {
+        std::set<std::filesystem::path> sorted;
+
+        for (auto const &dirEntry : std::filesystem::directory_iterator{originPath.path}) {
+          sorted.insert(dirEntry.path());
+        }
+
+        return sorted;
+      }();
+
+      for (const auto& path: sortedDirectories) {
+        if (!std::filesystem::is_regular_file(path) ||
+          path.filename() == "config" ||
+          path.filename().string().ends_with(".config")) {
+          continue;
+        }
+
+        std::cout << path << std::endl;
+
+        const auto fileEntity = registry.create();
+
+        registry.emplace<FileComponent>(fileEntity);
+        registry.emplace<ParentSite>(fileEntity, siteEntity);
+        registry.emplace<ParentDirectoryComponent>(fileEntity, dirEntity);
+        children.children.push_back(fileEntity);
+        registry.emplace<OriginPathComponent>(fileEntity, path);
       }
-
-      const auto fileEntity = registry.create();
-
-      registry.emplace<FileComponent>(fileEntity);
-      registry.emplace<ParentSite>(fileEntity, siteEntity);
-      registry.emplace<ParentDirectoryComponent>(fileEntity, dirEntity);
-      children.children.push_back(fileEntity);
-
-
-      registry.emplace<OriginPathComponent>(fileEntity, dirEntry.path());
-
-    }
-  });
+    });
 }
 
 
