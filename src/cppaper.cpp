@@ -1,11 +1,11 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <map>
 #include <queue>
 #include <stdexcept>
 #include <string>
-#include <vector>
+#include <ranges>
+#include <set>
 
 #include "Site.hpp"
 
@@ -82,12 +82,14 @@ void loadSiteDirectories(entt::registry &registry) {
       registry.emplace<OriginPathComponent>(directoryEntity, directoryPath);
     }
 
-    std::queue<std::filesystem::path> directories{{"pages"}};
+    std::set<std::filesystem::path> directories{{"pages"}};
 
     while (!directories.empty()) {
-      auto directory = directories.front();
+      const auto directory = *directories.begin();
       for (auto const &dirEntry :
-           std::filesystem::directory_iterator{directory}) {
+        std::filesystem::directory_iterator{directory}) {
+
+        std::cout << dirEntry << std::endl;
 
         if (std::filesystem::is_directory(dirEntry)) {
           const auto directoryEntity = registry.create();
@@ -99,46 +101,55 @@ void loadSiteDirectories(entt::registry &registry) {
           registry.emplace<OriginPathComponent>(directoryEntity,
                                                 dirEntry.path());
 
-          directories.push(dirEntry.path());
+          directories.insert(dirEntry.path());
         }
       }
 
-      directories.pop();
+      directories.erase(directory);
     }
   });
 }
 
 void loadSiteFiles(entt::registry &registry) {
   const auto directoriesView =
-      registry.view<const OriginPathComponent, const DirectoryComponent,
-                    ChildFileComponent>();
+    registry.view<const OriginPathComponent, const DirectoryComponent,
+    ChildFileComponent>();
 
   const auto siteEntity = registry.view<const SiteComponent>().front();
 
-  directoriesView.each([&registry, &siteEntity](const auto dirEntity,
-                                                const auto &originPath,
-                                                auto &children) {
-    for (auto const &dirEntry :
-         std::filesystem::directory_iterator{originPath.path}) {
+  directoriesView.each(
+    [&registry, &siteEntity](
+      const auto dirEntity,
+      const auto &originPath,
+      auto &children
+    ) {
+      //TODO use std::ranges::to<std::set> in the future
+      const auto sortedDirectories = [=]() -> std::set<std::filesystem::path> {
+        std::set<std::filesystem::path> sorted;
 
-      if (!std::filesystem::is_regular_file(dirEntry) ||
-          dirEntry.path().filename() == "config" ||
-          dirEntry.path().filename().string().ends_with(".config")) {
-        continue;
+        for (auto const &dirEntry : std::filesystem::directory_iterator{originPath.path}) {
+          sorted.insert(dirEntry.path());
+        }
+
+        return sorted;
+      }();
+
+      for (const auto& path: sortedDirectories) {
+        if (!std::filesystem::is_regular_file(path) ||
+          path.filename() == "config" ||
+          path.filename().string().ends_with(".config")) {
+          continue;
+        }
+
+        const auto fileEntity = registry.create();
+
+        registry.emplace<FileComponent>(fileEntity);
+        registry.emplace<ParentSite>(fileEntity, siteEntity);
+        registry.emplace<ParentDirectoryComponent>(fileEntity, dirEntity);
+        children.children.push_back(fileEntity);
+        registry.emplace<OriginPathComponent>(fileEntity, path);
       }
-
-      const auto fileEntity = registry.create();
-
-      registry.emplace<FileComponent>(fileEntity);
-      registry.emplace<ParentSite>(fileEntity, siteEntity);
-      registry.emplace<ParentDirectoryComponent>(fileEntity, dirEntity);
-      children.children.push_back(fileEntity);
-
-
-      registry.emplace<OriginPathComponent>(fileEntity, dirEntry.path());
-
-    }
-  });
+    });
 }
 
 
@@ -323,7 +334,6 @@ int main(int argc, char *argv[], char *envp[]) try {
       argc, argv);
 
   std::cout << "Getting site" << std::endl;
-
   getSite(registry);
 
   std::cout << "Loading directories" << std::endl;;
@@ -379,6 +389,7 @@ int main(int argc, char *argv[], char *envp[]) try {
   std::cout << "Initialiazing template environment" << std::endl;
   initTemplateEnvironment(registry);
 
+  //TODO generate TemplateComponent
   std::cout << "Templating content" << std::endl;
   templateFileContent(registry);
 
