@@ -1,4 +1,7 @@
-project('cppaper', 'cpp', version: '0.26.0', default_options: ['cpp_std=c++20', 'default_library=static'])
+project('cppaper', 'cpp', version: '0.26.0', default_options: [
+    'cpp_std=c++20',
+    'default_library=static'
+  ])
 
 src = files(
   #Utils
@@ -49,8 +52,15 @@ deps += entt_sub.get_variable('entt_dep')
 deps += subproject('sol2').get_variable('sol2_dep')
 deps += subproject('tfstring').get_variable('tfstring_dep')
 
+#TODO mark dependencies includes as system to not trigger errors from -werror
 cppaper_exe = executable('cppaper', src, include_directories: inc,
   dependencies: deps, install_dir: '/usr/bin/', install: true,
+  override_options: [
+    #TODO once projects dependencies marked with system includes,
+    #change to warning_level=everything
+    'warning_level=1',
+    'werror=true'
+    ]
   )
 
 generate_docs = run_target('docs', depends: [cppaper_exe],

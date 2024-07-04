@@ -74,7 +74,7 @@ inline void generateContent(entt::registry &registry, const entt::entity entity,
                             ) {
 
     if(registry.any_of<RawFileComponent>(entity)) {
-    std::cout << "Ignoring raw file" << std::endl; //TODO remove
+      std::cout << "Ignoring raw file" << std::endl; // TODO remove
       return; //TODO Ignore rawFile
     }
 
@@ -180,5 +180,12 @@ void templateFileContent(entt::registry &registry) {
                     title, true);
   });
 
+}
+
+void detectTemplates(entt::registry& registry) {
+  auto view = registry.view<const FileComponent, const ConfigComponent>();
+
+  view.each([&](const auto& configComponent){
+      });
 }
 } // namespace cppaper

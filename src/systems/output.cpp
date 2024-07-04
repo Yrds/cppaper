@@ -7,7 +7,7 @@
 
 namespace cppaper {
 void noOutputValidation(entt::registry &registry) {
-  auto fileView = registry.view<const ConfigComponent, const FileComponent>();
+  auto fileView = registry.view<const ConfigComponent, const FileComponent>().use<FileComponent>();
 
   fileView.each([&registry](const auto fileEntity, const auto &configComponent) {
       if (auto noOutput = configComponent.map.find("no_output");
