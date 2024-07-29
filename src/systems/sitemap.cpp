@@ -29,6 +29,23 @@ std::string getSiteBaseHref(const ConfigComponent &configComponent) {
   }
 }
 
+std::string escape(std::string text) {
+  std::string buffer;
+  buffer.reserve(text.size());
+  for(size_t pos = 0; pos != text.size(); ++pos) {
+    switch(text[pos]) {
+      case '&':  buffer.append("&amp;");       break;
+      case '\"': buffer.append("&quot;");      break;
+      case '\'': buffer.append("&apos;");      break;
+      case '<':  buffer.append("&lt;");        break;
+      case '>':  buffer.append("&gt;");        break;
+      default:   buffer.append(&text[pos], 1); break;
+    }
+  }
+
+  return buffer;
+}
+
 void sitemapSystem(entt::registry &registry) {
 
   std::string sitemapString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
@@ -54,8 +71,11 @@ void sitemapSystem(entt::registry &registry) {
                     &siteDomain](const auto &relativePathComponent) {
                    std::cout << "generating sitemap.xml to " << relativePathComponent.path << std::endl;
     sitemapString += "<url>";
-    sitemapString += "<loc>" + std::string("https://") + siteDomain + siteHref + relativePathComponent.path.string() + +"</loc>";
-    sitemapString += "</url>";
+
+    std::string textContent = std::string("https://") + siteDomain + siteHref + relativePathComponent.path.string();
+    sitemapString += "<loc>" + escape(textContent) +"</loc>";
+
+    sitemapString += "</url>\n";
   });
 
   sitemapString += "</urlset>";
