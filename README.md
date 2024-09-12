@@ -296,7 +296,17 @@ for _, v in ipairs(get_pages_with_config('title', 'Custom Title')) do
   print(v)
 end
 ```
+### `get_config_from_entity`
+return the configuration associated with the given entity ID. If no configuration exists for that entity, return nil.
 
+Example: 
+
+````lua
+for _, v in ipairs(get_pages_with_config('title')) do
+  local x = get_config_from_entity(v)
+  print(x.title)
+end
+````
 ### Hooks
 
 Hooks are special functions called by `cppaper` on certain moment of the flow. For now there is only one.
