@@ -9,22 +9,5 @@
     <h2>
       {{ lua("return string.upper('thanks to lua super powers I became uppercased')") }}
     </h2>
-    <table>
-      <thead>
-        <td>
-          <span>
-            Entity
-          </span>
-        </td>
-        <td>
-          <span>
-            Title
-          </span>
-        </td>
-      </thead>
-      <tbody>
-        {{  lua("local r = '' for _,v in ipairs(get_pages_with_config('title')) do local x = get_configs_from_entity(v) r = r .. '<tr><td>'.. v .. '</td><td>'.. x.title ..'</td></tr>' end return r") }}
-      </tbody>
-    </table>
   </body>
 </html>
