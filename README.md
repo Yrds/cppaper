@@ -296,7 +296,7 @@ for _, v in ipairs(get_pages_with_config('title', 'Custom Title')) do
   print(v)
 end
 ```
-### `get_config_from_entity`
+### `get_config_from_entity(entity_id: integer)`
 return the configuration associated with the given entity ID. If no configuration exists for that entity, return nil.
 
 Example: 
