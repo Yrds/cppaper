@@ -3,3 +3,4 @@ debug
 subprojects/*
 !subprojects/*.wrap
 Session.vim
+.vscode

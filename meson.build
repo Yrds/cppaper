@@ -33,7 +33,8 @@ src = files(
   'src/template/functions/getPagesWithConfig.cpp',
 
   #Lua functions
-  'src/script/functions/getPagesWithConfig.cpp'
+  'src/script/functions/getPagesWithConfig.cpp',
+  'src/script/functions/getConfigFromEntity.cpp'
   )
 
 inc = include_directories('src')
