@@ -9,6 +9,7 @@
 #include "components/Script.hpp"
 
 #include "script/functions/getPagesWithConfig.hpp"
+#include "script/functions/getConfigFromEntity.hpp"
 
 namespace cppaper {
 
@@ -62,6 +63,7 @@ void loadScriptCppaperFunctions(entt::registry& registry, sol::state& lua) {
       std::cout << "loading cppaper function into lua..." << std::endl;
 
       script::functions::getPagesWithConfig(registry, lua);
+      script::functions::getConfigFromEntity(registry,lua);
 }
 
 void initScriptSystem(entt::registry &registry) {
