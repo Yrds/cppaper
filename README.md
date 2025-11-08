@@ -1,26 +1,17 @@
-# CPPaper
+# CPPaper 2.0
 
-A static blog/site generator made in modern c++.
+A static blog/site generator made in modern c++ version 2.
+
+The second version of cppaper is a complete rewrite with focus on flexibility
 
 ## Features
 
-  - Templates using [inja](https://github.com/pantor/inja)
-  - Pages using markdown(gfm with all extensions enabled)
-  - Pages using json(nlohmann)
-  - Custom Lua scripts(sol2)
-  - Sitemap.xml generation
+- Ninja build system generation
+- Define your rules from scratch, just pay what you use
+- markdown, html and json support
+- lua scripting support
 
-## Installing
-
-### Package management
-
-Aur:
-
-`yay -S cppaper`
-
-NOTE: Aur is temporary disabled
-
-### Building
+## Building
 
 #### Requirements
 
