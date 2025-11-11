@@ -1,10 +1,17 @@
 project('cppaper', 'cpp', version: '0.26.0', default_options: [
-    'cpp_std=c++20',
-    'default_library=static'
+    #TODO once projects dependencies marked with system includes,
+    #change to warning_level=everything
+    'cpp_std=c++23',
+    'default_library=static',
+    'warning_level=1',
+    'werror=true'
   ])
 
 src = files(
-  #Utils
+  # Lib
+  'src/lib/ninja/ninja_syntax.cpp',
+
+  # Utils
   'src/string_utils.cpp',
 
   'src/systems/template.cpp',
@@ -39,11 +46,11 @@ src = files(
 
 inc = include_directories('src')
 
-cmark_gfm_sub = subproject('cmark-gfm', default_options: 'default_library=static')
+cmark_gfm_sub = subproject('cmark-gfm', default_options: ['default_library=static', 'warning_level=0', 'werror=false'])
 
-inja_sub = subproject('inja')
+inja_sub = subproject('inja', default_options: ['warning_level=0', 'werror=false'])
 
-entt_sub = subproject('entt')
+entt_sub = subproject('entt', default_options: ['warning_level=0', 'werror=false'])
 
 deps = []
 
@@ -55,14 +62,8 @@ deps += subproject('tfstring').get_variable('tfstring_dep')
 
 #TODO mark dependencies includes as system to not trigger errors from -werror
 cppaper_exe = executable('cppaper', src, include_directories: inc,
-  dependencies: deps, install_dir: '/usr/bin/', install: true,
-  override_options: [
-    #TODO once projects dependencies marked with system includes,
-    #change to warning_level=everything
-    'warning_level=1',
-    'werror=true'
-    ]
-  )
+  dependencies: deps, install_dir: '/usr/bin/', install: true
+)
 
 generate_docs = run_target('docs', depends: [cppaper_exe],
   command: ['generate_docs.sh'])
