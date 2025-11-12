@@ -6,6 +6,7 @@ The second version of cppaper is a complete rewrite with focus on flexibility
 
 ## Features
 
+- Lua configuration
 - Ninja build system generation
 - Define your rules from scratch, just pay what you use
 - markdown, html and json support

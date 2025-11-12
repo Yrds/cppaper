@@ -19,7 +19,6 @@ auto Writer::create(
 }
 
 auto Writer::new_line(int count) const -> void {
-  std::cout << "Adding " << count << " new lines\n";
   for (int i = 0; i < count; ++i) {
     (*stream) << '\n';
   }
@@ -95,6 +94,56 @@ auto Writer::build(
   }
 }
 
+auto Writer::rule(
+  std::string_view name,
+  std::string_view command,
+  std::string_view description,
+  std::string_view depfile,
+  bool generator,
+  std::string_view pool,
+  bool restat,
+  std::string_view rspfile,
+  std::string_view rspfile_content,
+  std::vector<std::string_view> deps
+) const -> void {
+  (*stream) << "rule " << name << '\n';
+  (*stream) << "  command = " << command << '\n';
 
+  if (!description.empty()) {
+    (*stream) << "  description = " << description << '\n';
+  }
+
+  if (!depfile.empty()) {
+    (*stream) << "  depfile = " << depfile << '\n';
+  }
+
+  if (generator) {
+    (*stream) << "  generator = 1\n";
+  }
+
+  if (!pool.empty()) {
+    (*stream) << "  pool = " << pool << '\n';
+  }
+
+  if (restat) {
+    (*stream) << "  restat = 1\n";
+  }
+
+  if (!rspfile.empty()) {
+    (*stream) << "  rspfile = " << rspfile << '\n';
+  }
+
+  if (!rspfile_content.empty()) {
+    (*stream) << "  rspfile_content = " << rspfile_content << '\n';
+  }
+
+  if (!deps.empty()) {
+    (*stream) << "  deps =";
+    for (const auto& dep : deps) {
+      (*stream) << " " << dep;
+    }
+    (*stream) << '\n';
+  }
+}
 
 } // namespace ninja_lib

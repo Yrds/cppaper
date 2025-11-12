@@ -60,7 +60,7 @@ struct Writer {
     std::string_view rspfile = "",
     std::string_view rspfile_content = "",
     std::vector<std::string_view> deps = {}
-  ) -> void;
+  ) const -> void;
 
   auto build(
     const std::vector<std::string_view>& outputs,
