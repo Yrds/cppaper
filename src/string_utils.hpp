@@ -5,7 +5,8 @@
 #include <string>
 
 namespace cppaper {
-std::vector<std::string> split(std::string& string, const char delimiter);
+auto split(std::string& string, char delimiter) -> std::vector<std::string>;
+auto expand(std::string& str, std::vector<std::vector<std::string>>& wildcards) -> std::vector<std::string>;
 } // namespace cppaper
 
 

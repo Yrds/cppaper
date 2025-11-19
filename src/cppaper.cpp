@@ -50,6 +50,8 @@
 
 #include "entt/entt.hpp"
 
+#include "commands.hpp"
+
 // NOTE Always before a release:
 // const correctness
 // format code
@@ -91,7 +93,7 @@ void loadSiteDirectories(entt::registry &registry) {
       for (auto const &dirEntry :
         std::filesystem::directory_iterator{directory}) {
 
-        std::cout << dirEntry << std::endl;
+        std::cout << dirEntry << '\n';
 
         if (std::filesystem::is_directory(dirEntry)) {
           const auto directoryEntity = registry.create();
@@ -170,7 +172,28 @@ void clearDirectory(std::filesystem::path directory) {
   }
 }
 
-auto create_ninja_build(entt::registry &reg) -> auto {
+enum class NinjaBuildError : uint8_t {
+  kCppaperLuaNotFound = 1,
+  kNinjaBuildFileCreationFailed,
+  kCppaperIsNotRegularFile,
+};
+
+auto create_ninja_build(entt::registry &reg) -> std::expected<void, NinjaBuildError> {
+  // TODO (yuri): read cppaper.lua file to generate build.ninja
+  sol::state lua;
+  lua.open_libraries(sol::lib::base, sol::lib::package);
+  std::filesystem::path cppaper_lua { "cppaper.lua" };
+
+  if (!std::filesystem::exists(cppaper_lua)) {
+    return std::unexpected(NinjaBuildError::kCppaperLuaNotFound);
+  }
+
+  if (!std::filesystem::is_regular_file(cppaper_lua)) {
+    return std::unexpected(NinjaBuildError::kCppaperIsNotRegularFile);
+  }
+
+  lua.script_file(cppaper_lua);
+
   // TODO (yuri): regenerate only if something changed
   const auto writer = ninja_lib::Writer::create(
     std::make_unique<std::ofstream>("build.ninja"),
@@ -195,6 +218,8 @@ auto create_ninja_build(entt::registry &reg) -> auto {
   writer->build(site_copy_outputs, std::string_view{ "rule" });
 
   std::system("ninja -f build.ninja");
+
+  return {};
 }
 
 void outputContent(entt::registry &registry) {
@@ -258,7 +283,7 @@ void outputContent(entt::registry &registry) {
                     indexFileView.size_hint() + sitemapFileView.size_hint();
 
 
-  std::cout << "writing " << size << " files (excluded files are counting to that too)" << std::endl;
+  std::cout << "writing " << size << " files (excluded files are counting to that too)" << '\n';
 
   contentView.each([&pagesPath, &publicDirectory](const auto &generatedContent,
                                                   const auto &originPath) {
@@ -359,14 +384,27 @@ void setSystem(entt::registry &registry) {
 namespace {
 
 auto process_commands(int argc, char** argv, entt::registry &registry) -> std::expected<void, CommandError> {
+  auto command_entity = registry.create();
+
   if (const auto result = cmd_line_parse(
     "build", [&]() {
+      registry.emplace<cppaper::Command>(command_entity);
       // TODO(yuri): now it should read a cppaper.lua file and generate the ninja build file
       // no more automatic reading pages
       // everything should be done via cppaper.lua
       // everything should be explicit on the build file
       // offers easy functions but also don't hide complexity in case user wants to do something custom
-      cppaper::create_ninja_build(registry);
+      const auto result = cppaper::create_ninja_build(registry);
+
+      if (result) {
+        return;
+      }
+
+      if (result.error() == cppaper::NinjaBuildError::kCppaperLuaNotFound) {
+        std::cerr << "[ERROR] cppaper.lua not found" << '\n';
+      } else if (result.error() == cppaper::NinjaBuildError::kCppaperIsNotRegularFile) {
+        std::cerr << "[ERROR] cppaper.lua is not a regular file" << '\n';
+      }
     },
   argc, argv); result) {
     return result;
@@ -382,6 +420,8 @@ auto main(int argc, char **argv, char **  /*envp*/) -> int try {
 
   entt::registry registry;
 
+  setSystem(registry);
+
   cmd_line_parse(
       "-C", [](const std::string& value) { std::filesystem::current_path(value); },
       argc, argv);
@@ -392,108 +432,111 @@ auto main(int argc, char **argv, char **  /*envp*/) -> int try {
     return 0;
   }
 
-  std::cout << "error: " << static_cast<int>(result.error()) << '\n';
+  if (result.error() == CommandError::kUnknownCommand) {
+    std::cout << "No command specified, running default build process..." << '\n';
+  } else {
+    std::cerr << "[ERROR] Unknown command error" << '\n';
+    return 1;
+  }
 
   return static_cast<int>(result.error());
-
-  setSystem(registry);
 
 
 
   cmd_line_parse(
       "-O",
-      [&registry](std::string value) {
-        const auto systemEntity =
+      [&registry](const std::string& value) -> void {
+        const auto system_entity =
             registry.view<SystemConfigComponent>().front();
 
-        auto &systemConfig = registry.get<SystemConfigComponent>(systemEntity);
+        auto &system_config = registry.get<SystemConfigComponent>(system_entity);
 
-        systemConfig.publicDirectory = std::filesystem::path{value + "/"};
+        system_config.publicDirectory = std::filesystem::path{value + "/"};
       },
       argc, argv);
 
-  std::cout << "Getting site" << std::endl;
+  /*
+  std::cout << "Getting site" << '\n';
   getSite(registry);
 
-  std::cout << "Loading directories" << std::endl;;
+  std::cout << "Loading directories" << '\n';;
   loadSiteDirectories(registry);
 
-  std::cout << "Reading files" << std::endl;
+  std::cout << "Reading files" << '\n';
   loadSiteFiles(registry);
 
-  std::cout << "Reading configuration" << std::endl;
+  std::cout << "Reading configuration" << '\n';
   configSystem(registry);
 
-  std::cout << "Scanning script files" << std::endl;
+  std::cout << "Scanning script files" << '\n';
   scanScriptFiles(registry);
 
-  std::cout << "Initializing script system" << std::endl;
+  std::cout << "Initializing script system" << '\n';
   initScriptSystem(registry);
 
-  std::cout << "Processing extensions" << std::endl;
+  std::cout << "Processing extensions" << '\n';
   extensionSystem(registry);
 
-  std::cout << "Reading file contents" << std::endl;
+  std::cout << "Reading file contents" << '\n';
   readFilesContent(registry);
 
-  std::cout << "Finding 'no_output' files" << std::endl;
+  std::cout << "Finding 'no_output' files" << '\n';
   noOutputValidation(registry);
 
-  std::cout << "Indexing tags" << std::endl;
+  std::cout << "Indexing tags" << '\n';
   createTagIndex(registry);
 
-  std::cout << "Parsing relative path" << std::endl;
+  std::cout << "Parsing relative path" << '\n';
   relativePathSystem(registry);
 
-  std::cout << "Updating relative Paths Output extensions" << std::endl;
+  std::cout << "Updating relative Paths Output extensions" << '\n';
   setFilesRelativePathExtension(registry);
 
-  std::cout << "Mounting directories map" << std::endl;
+  std::cout << "Mounting directories map" << '\n';
   directoriesMapSystem(registry);
 
-  std::cout << "Parsing JSON Files" << std::endl;
+  std::cout << "Parsing JSON Files" << '\n';
   jsonSystem(registry);
 
-  std::cout << "Running Indexing System" << std::endl;
+  std::cout << "Running Indexing System" << '\n';
   indexSystem(registry);
 
-  std::cout << "Title System" << std::endl;
+  std::cout << "Title System" << '\n';
   titleSystem(registry);
 
-  std::cout << "[SCRIPT] Before Templating" << std::endl;
+  std::cout << "[SCRIPT] Before Templating" << '\n';
   luaBeforeTemplate(registry);
 
-  //TODO implement shortcodes
+  // TODO(yuri): implement shortcodes
 
-  std::cout << "Initialiazing template environment" << std::endl;
+  std::cout << "Initialiazing template environment" << '\n';
   initTemplateEnvironment(registry);
 
-  //TODO generate TemplateComponent
-  std::cout << "Templating content" << std::endl;
+  // TODO(yuri): generate TemplateComponent
+  std::cout << "Templating content" << '\n';
   templateFileContent(registry);
 
-  std::cout << "Generating Content" << std::endl;
+  std::cout << "Generating Content" << '\n';
   markdownSystem(registry);
 
-  std::cout << "Mounting templates" << std::endl;
+  std::cout << "Mounting templates" << '\n';
   templateSystem(registry);
 
-  std::cout << "[SCRIPT] Before Output" << std::endl;
+  std::cout << "[SCRIPT] Before Output" << '\n';
   luaBeforeOutput(registry);
 
-  std::cout << "Generating sitemap" << std::endl;
+  std::cout << "Generating sitemap" << '\n';
   sitemapSystem(registry);
+  */
 
-  // TODO(yuri): markdown output html on output content when there is no template
-  std::cout << "Writing content" << std::endl;
   // TODO(yuri): output ninja file instead of directly outputting content
   //outputContent(registry);
 
 
-  std::cout << "Done!" << std::endl;
+  std::cout << "Done!" << '\n';
 
   return 0;
 } catch (const std::exception &ex) {
-  std::cerr << "[ERROR] " << ex.what() << std::endl;
+  std::cerr << "[ERROR] " << ex.what() << '\n';
   return 1;
 } 
