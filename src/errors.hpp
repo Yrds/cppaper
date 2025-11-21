@@ -6,7 +6,7 @@
 
 namespace cppaper {
 
-enum class ErrorTypes: uint8_t {
+enum class ErrorType: uint8_t {
   kCppaperLuaNotFound = 1,
   kNinjaBuildFileCreationFailed,
   kCppaperIsNotRegularFile,
@@ -15,7 +15,7 @@ enum class ErrorTypes: uint8_t {
 
 template<typename T>
 struct ErrorMessage {
-  ErrorTypes type;
+  ErrorType type;
   std::string message;
 };
 

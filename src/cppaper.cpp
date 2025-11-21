@@ -9,6 +9,7 @@
 
 #include "Site.hpp"
 
+#include "components/Command.hpp"
 #include "components/SystemConfigComponent.hpp"
 #include "components/NoOutput.hpp"
 #include "components/ParentDirectory.hpp"
@@ -50,7 +51,7 @@
 
 #include "entt/entt.hpp"
 
-#include "commands.hpp"
+#include "systems/command.hpp"
 
 // NOTE Always before a release:
 // const correctness
@@ -389,6 +390,7 @@ auto process_commands(int argc, char** argv, entt::registry &registry) -> std::e
   if (const auto result = cmd_line_parse(
     "build", [&]() {
       registry.emplace<cppaper::Command>(command_entity);
+      registry.emplace<cppaper::BuildCommand>(command_entity);
       // TODO(yuri): now it should read a cppaper.lua file and generate the ninja build file
       // no more automatic reading pages
       // everything should be done via cppaper.lua
@@ -409,6 +411,14 @@ auto process_commands(int argc, char** argv, entt::registry &registry) -> std::e
   argc, argv); result) {
     return result;
   };
+
+  const auto command_error_view = registry.view<CommandError>();
+
+  if (!command_error_view.empty()) {
+    const auto first_error = *command_error_view.begin();
+    return std::unexpected(registry.get<CommandError>(first_error));
+  }
+
 
   return std::unexpected(CommandError::kUnknownCommand);
 } // namespace
