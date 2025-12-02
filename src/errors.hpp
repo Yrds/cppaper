@@ -2,22 +2,19 @@
 #define CPPAPER_ERRORS_INCLUDED
 
 #include <cstdint>
-#include <string>
 
 namespace cppaper {
 
 enum class ErrorType: uint8_t {
-  kCppaperLuaNotFound = 1,
+  // This will be returned on main function so starts in 135 so no confusion between errno
+  kCppaperLuaNotFound = 135,
   kNinjaBuildFileCreationFailed,
   kCppaperIsNotRegularFile,
   kUnknownError,
+  kUnknownCommand,
 };
 
-template<typename T>
-struct ErrorMessage {
-  ErrorType type;
-  std::string message;
-};
+auto print_error(ErrorType error, bool break_line = false) -> void;
 
 }
 #endif //CPPAPER_ERRORS_INCLUDED

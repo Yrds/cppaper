@@ -47,6 +47,8 @@
 #include "systems/fileContent.hpp"
 #include "systems/sitemap.hpp"
 
+#include "errors.hpp"
+
 #include "lib/ninja/ninja_syntax.hpp"
 
 #include "entt/entt.hpp"
@@ -361,79 +363,100 @@ enum class CommandError: uint8_t {
   kUnknownCommand = 1,
 };
 
-auto cmd_line_parse(const std::string& arg, std::function<void()> callback,
-                  int argc, char *argv[]) -> std::expected<void, CommandError> {
 
+// TODO(yuri): config system?
+namespace {
+auto cmd_line_parse(
+  const std::string& arg,
+  const std::function<void()>& callback,
+  int argc,
+  char *argv[]
+) -> std::expected<void, cppaper::ErrorType> {
   for (auto argi = 0; argi < argc; argi++) {
     if (std::string(argv[argi]) == arg && (argi + 1 <= argc)) {
       callback();
       return {};
     }
   }
-
-  return std::unexpected(CommandError::kUnknownCommand);
+  return std::unexpected(cppaper::ErrorType::kUnknownCommand);
 }
 
-// TODO(yuri): config system?
-void setSystem(entt::registry &registry) {
-  using namespace cppaper;
+void set_system(entt::registry &registry) {
 
-  const auto systemEntity = registry.create();
-  registry.emplace<SystemConfigComponent>(systemEntity);
+  const auto system_entity = registry.create();
+  registry.emplace<cppaper::SystemConfigComponent>(system_entity);
 }
 
-namespace {
 
-auto process_commands(int argc, char** argv, entt::registry &registry) -> std::expected<void, CommandError> {
+struct BuildCommand {
+  entt::registry& registry;
+  entt::entity command_entity;
+
+  auto operator()() const -> std::expected<void, cppaper::ErrorType> {
+    registry.emplace<cppaper::Command>(command_entity);
+    registry.emplace<cppaper::BuildCommand>(command_entity);
+    // TODO(yuri): now it should read a cppaper.lua file and generate the ninja build file
+    // no more automatic reading pages
+    // everything should be done via cppaper.lua
+    // everything should be explicit on the build file
+    // offers easy functions but also don't hide complexity in case user wants to do something custom
+    const auto result = cppaper::create_ninja_build(registry);
+
+    if (result) {
+      return {};
+    }
+
+    if (result.error() == cppaper::NinjaBuildError::kCppaperLuaNotFound) {
+      std::cerr << "[ERROR] cppaper.lua not found" << '\n';
+    } else if (result.error() == cppaper::NinjaBuildError::kCppaperIsNotRegularFile) {
+      std::cerr << "[ERROR] cppaper.lua is not a regular file" << '\n';
+    }
+
+    return {};
+  }
+};
+
+auto get_command(std::string& selected_command, entt::registry &registry, entt::entity command_entity) -> std::optional<std::function<void()>> {
+  if (selected_command == "build") {
+    return BuildCommand {.registry=registry, .command_entity=command_entity};
+  }
+
+  return {};
+}
+
+auto process_commands(int argc, char** argv, entt::registry &registry) -> std::expected<void, cppaper::ErrorType> {
   auto command_entity = registry.create();
 
-  if (const auto result = cmd_line_parse(
-    "build", [&]() {
-      registry.emplace<cppaper::Command>(command_entity);
-      registry.emplace<cppaper::BuildCommand>(command_entity);
-      // TODO(yuri): now it should read a cppaper.lua file and generate the ninja build file
-      // no more automatic reading pages
-      // everything should be done via cppaper.lua
-      // everything should be explicit on the build file
-      // offers easy functions but also don't hide complexity in case user wants to do something custom
-      const auto result = cppaper::create_ninja_build(registry);
-
-      if (result) {
-        return;
-      }
-
-      if (result.error() == cppaper::NinjaBuildError::kCppaperLuaNotFound) {
-        std::cerr << "[ERROR] cppaper.lua not found" << '\n';
-      } else if (result.error() == cppaper::NinjaBuildError::kCppaperIsNotRegularFile) {
-        std::cerr << "[ERROR] cppaper.lua is not a regular file" << '\n';
-      }
-    },
-  argc, argv); result) {
+  // TODO (yuri 2025-12-02): use get_command here instead of cmd_line_parse
+  const BuildCommand build_command {
+    .registry = registry,
+    .command_entity = command_entity
+  };
+  if (const auto result = cmd_line_parse("build", build_command, argc, argv); result) {
     return result;
   };
 
-  const auto command_error_view = registry.view<CommandError>();
+  const auto command_error_view = registry.view<cppaper::ErrorType>();
 
   if (!command_error_view.empty()) {
     const auto first_error = *command_error_view.begin();
-    return std::unexpected(registry.get<CommandError>(first_error));
+    return std::unexpected(registry.get<cppaper::ErrorType>(first_error));
   }
 
-
-  return std::unexpected(CommandError::kUnknownCommand);
+  return std::unexpected(cppaper::ErrorType::kUnknownCommand);
 } // namespace
+
 
 }
 
 auto main(int argc, char **argv, char **  /*envp*/) -> int try {
-  using namespace cppaper;
-
   entt::registry registry;
 
-  setSystem(registry);
+  set_system(registry);
 
+  // TODO (yuri): Replace cmd_line_parse by tclap
   cmd_line_parse(
-      "-C", [](const std::string& value) { std::filesystem::current_path(value); },
+      "-C", [](const std::string& value) -> auto { std::filesystem::current_path(value); },
       argc, argv);
 
   auto result = process_commands(argc, argv, registry);
@@ -442,110 +465,8 @@ auto main(int argc, char **argv, char **  /*envp*/) -> int try {
     return 0;
   }
 
-  if (result.error() == CommandError::kUnknownCommand) {
-    std::cout << "No command specified, running default build process..." << '\n';
-  } else {
-    std::cerr << "[ERROR] Unknown command error" << '\n';
-    return 1;
-  }
-
+  cppaper::print_error(result.error());
   return static_cast<int>(result.error());
-
-
-
-  cmd_line_parse(
-      "-O",
-      [&registry](const std::string& value) -> void {
-        const auto system_entity =
-            registry.view<SystemConfigComponent>().front();
-
-        auto &system_config = registry.get<SystemConfigComponent>(system_entity);
-
-        system_config.publicDirectory = std::filesystem::path{value + "/"};
-      },
-      argc, argv);
-
-  /*
-  std::cout << "Getting site" << '\n';
-  getSite(registry);
-
-  std::cout << "Loading directories" << '\n';;
-  loadSiteDirectories(registry);
-
-  std::cout << "Reading files" << '\n';
-  loadSiteFiles(registry);
-
-  std::cout << "Reading configuration" << '\n';
-  configSystem(registry);
-
-  std::cout << "Scanning script files" << '\n';
-  scanScriptFiles(registry);
-
-  std::cout << "Initializing script system" << '\n';
-  initScriptSystem(registry);
-
-  std::cout << "Processing extensions" << '\n';
-  extensionSystem(registry);
-
-  std::cout << "Reading file contents" << '\n';
-  readFilesContent(registry);
-
-  std::cout << "Finding 'no_output' files" << '\n';
-  noOutputValidation(registry);
-
-  std::cout << "Indexing tags" << '\n';
-  createTagIndex(registry);
-
-  std::cout << "Parsing relative path" << '\n';
-  relativePathSystem(registry);
-
-  std::cout << "Updating relative Paths Output extensions" << '\n';
-  setFilesRelativePathExtension(registry);
-
-  std::cout << "Mounting directories map" << '\n';
-  directoriesMapSystem(registry);
-
-  std::cout << "Parsing JSON Files" << '\n';
-  jsonSystem(registry);
-
-  std::cout << "Running Indexing System" << '\n';
-  indexSystem(registry);
-
-  std::cout << "Title System" << '\n';
-  titleSystem(registry);
-
-  std::cout << "[SCRIPT] Before Templating" << '\n';
-  luaBeforeTemplate(registry);
-
-  // TODO(yuri): implement shortcodes
-
-  std::cout << "Initialiazing template environment" << '\n';
-  initTemplateEnvironment(registry);
-
-  // TODO(yuri): generate TemplateComponent
-  std::cout << "Templating content" << '\n';
-  templateFileContent(registry);
-
-  std::cout << "Generating Content" << '\n';
-  markdownSystem(registry);
-
-  std::cout << "Mounting templates" << '\n';
-  templateSystem(registry);
-
-  std::cout << "[SCRIPT] Before Output" << '\n';
-  luaBeforeOutput(registry);
-
-  std::cout << "Generating sitemap" << '\n';
-  sitemapSystem(registry);
-  */
-
-  // TODO(yuri): output ninja file instead of directly outputting content
-  //outputContent(registry);
-
-
-  std::cout << "Done!" << '\n';
-
-  return 0;
 } catch (const std::exception &ex) {
   std::cerr << "[ERROR] " << ex.what() << '\n';
   return 1;

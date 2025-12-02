@@ -1,6 +1,16 @@
-build
-debug
-subprojects/*
-!subprojects/*.wrap
+# Xmake cache
+.xmake/
+build/
+
+# MacOS Cache
+.DS_Store
+
+# Generated
+compile_commands.json
+.luarc.json
+
+# Cache
+.cache
+
+# Vim
 Session.vim
-.vscode
