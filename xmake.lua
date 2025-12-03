@@ -1,13 +1,13 @@
 add_rules("mode.debug", "mode.release")
 
 add_languages("c++23")
-add_requires("entt", "sol2", "tclap", "inja")
+add_requires("entt", "sol2", "tclap", "inja", "cmark")
 
 target("cppaper")
     set_kind("binary")
     add_files("src/*.cpp")
     add_files("src/lib/ninja/*.cpp")
-    add_packages("entt", "sol2", "tclap", "inja")
+    add_packages("entt", "sol2", "tclap", "inja", "cmark")
     add_includedirs("src")
 
 --

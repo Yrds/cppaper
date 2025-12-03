@@ -5,6 +5,10 @@ build/
 # MacOS Cache
 .DS_Store
 
+# Clang
+.ccls-cache/
+main.plist
+
 # Generated
 compile_commands.json
 .luarc.json
