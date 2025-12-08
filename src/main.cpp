@@ -6,6 +6,7 @@
 #include <string>
 #include <ranges>
 #include <set>
+#include <exception>
 
 #include "Site.hpp"
 
@@ -46,6 +47,8 @@
 #include "systems/tag.hpp"
 #include "systems/fileContent.hpp"
 #include "systems/sitemap.hpp"
+
+#include "tclap/CmdLine.h"
 
 #include "errors.hpp"
 
@@ -446,28 +449,52 @@ auto process_commands(int argc, char** argv, entt::registry &registry) -> std::e
   return std::unexpected(cppaper::ErrorType::kUnknownCommand);
 } // namespace
 
-
 }
 
-auto main(int argc, char **argv, char **  /*envp*/) -> int try {
-  entt::registry registry;
+enum class AVAILABLE_COMMANDS: char {
+  kBuild = 'b'
+};
 
-  set_system(registry);
 
-  // TODO (yuri): Replace cmd_line_parse by tclap
-  cmd_line_parse(
-      "-C", [](const std::string& value) -> auto { std::filesystem::current_path(value); },
-      argc, argv);
+auto main(int argc, char **argv, char **  /*envp*/) -> int {
+  using TCLAP::UnlabeledValueArg;
+  using TCLAP::ValueArg;
+  using TCLAP::ExclusiveArgGroup;
 
-  auto result = process_commands(argc, argv, registry);
+  try {
+    entt::registry registry;
 
-  if (result) {
+    set_system(registry);
+
+    TCLAP::CmdLine cmd("Cppaper", ' ', "0.9");
+
+    UnlabeledValueArg<std::string> build_command("command", "unlabaled command", true, "build", "test");
+    ValueArg<std::string> name_arg("n", "name", "NAme to print" , true, "homer", "string");
+
+    cmd.add(build_command);
+    cmd.add(name_arg);
+    cmd.parse(argc, argv);
+
+    std::cout << build_command.getValue() << '\n';
+
+
+    // TODO (yuri): Replace cmd_line_parse by tclap
+    //cmd_line_parse(
+    //  "-C", [](const std::string& value) -> auto { std::filesystem::current_path(value); },
+    //  argc, argv);
+
+    //auto result = process_commands(argc, argv, registry);
+
+    //if (result) {
+    //  return 0;
+    //}
+
+    //cppaper::print_error(result.error());
+    //return static_cast<int>(result.error());
+
     return 0;
+  } catch (const std::exception &ex) {
+    std::cerr << "[ERROR] " << ex.what() << '\n';
+    return 1;
   }
-
-  cppaper::print_error(result.error());
-  return static_cast<int>(result.error());
-} catch (const std::exception &ex) {
-  std::cerr << "[ERROR] " << ex.what() << '\n';
-  return 1;
 } 
