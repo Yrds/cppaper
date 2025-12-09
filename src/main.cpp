@@ -31,6 +31,7 @@
 #include "components/SitemapComponent.hpp"
 #include "components/RelativePath.hpp"
 
+
 #include "systems/config.hpp"
 #include "systems/directoriesMap.hpp"
 #include "systems/fileContent.hpp"
@@ -49,6 +50,10 @@
 #include "systems/sitemap.hpp"
 
 #include "tclap/CmdLine.h"
+#include "tclap/CmdLineInterface.h"
+#include "tclap/ArgGroup.h"
+
+#include "cli/ArgValueConstraint.hpp"
 
 #include "errors.hpp"
 
@@ -455,27 +460,37 @@ enum class AVAILABLE_COMMANDS: char {
   kBuild = 'b'
 };
 
-
 auto main(int argc, char **argv, char **  /*envp*/) -> int {
   using TCLAP::UnlabeledValueArg;
   using TCLAP::ValueArg;
-  using TCLAP::ExclusiveArgGroup;
+  using TCLAP::OneOf;
+  using TCLAP::SwitchArg;
+  using TCLAP::ArgGroup;
+  using TCLAP::ValuesConstraint;
 
   try {
     entt::registry registry;
 
     set_system(registry);
 
-    TCLAP::CmdLine cmd("Cppaper", ' ', "0.9");
+    TCLAP::CmdLine cmd("cppaper", ' ', "0.99", true);
 
-    UnlabeledValueArg<std::string> build_command("command", "unlabaled command", true, "build", "test");
-    ValueArg<std::string> name_arg("n", "name", "NAme to print" , true, "homer", "string");
+    OneOf command_arg_group;
+    SwitchArg build_command("B", "build", "generate ninja file and build project");
+    SwitchArg render_command("R", "render", "render some file");
+    command_arg_group.add(build_command);
+    command_arg_group.add(render_command);
+    std::vector<std::string> allowed = {"xombres", "xobres"};
+    // TODO(yuri): change do SwitchArgConstraint
+    ArgValueConstraint<std::string> values { build_command };
+    ValueArg<std::string> name_arg("n", "name", "NAme to print" , false, "homer", &values);
 
-    cmd.add(build_command);
+    cmd.add(command_arg_group);
     cmd.add(name_arg);
     cmd.parse(argc, argv);
 
     std::cout << build_command.getValue() << '\n';
+    std::cout << name_arg.getValue() << '\n';
 
 
     // TODO (yuri): Replace cmd_line_parse by tclap
